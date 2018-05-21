@@ -1,0 +1,12 @@
+{
+  "name": "mini-sql-ts",
+  "version": "0.0.0",
+  "description": "MiniSQL-ts",
+  "main": "app.js",
+  "author": {
+    "name": "comonad"
+  },
+  "devDependencies": {
+    "@types/node": "^6.0.87"
+  }
+}
