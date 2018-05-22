@@ -39,6 +39,9 @@
     <TypeScriptCompile Include="lib\ast.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
+    <TypeScriptCompile Include="lib\catalog.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
     <TypeScriptCompile Include="lib\instruction.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
@@ -46,6 +49,9 @@
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="lib\parser.ts">
+      <SubType>Code</SubType>
+    </TypeScriptCompile>
+    <TypeScriptCompile Include="lib\tables.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="lib\tokenizer.ts">

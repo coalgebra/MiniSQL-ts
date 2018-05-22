@@ -2,6 +2,9 @@
 import IType = Types.IType;
 import Ast = require("./ast");
 import AST = Ast.AST;
+import Tables = require("./tables");
+import TableMember = Tables.TableMember;
+import TableHeader = Tables.TableHeader;
 
 export enum InstType {
     CREATE_INDEX,
@@ -35,17 +38,6 @@ export class CreateIndex extends Instruction{
 }
 
 
-export class TableMember {
-    index: string;
-    type: IType;
-    unique: boolean;
-
-    constructor(index: string, type: Types.IType, unique: boolean) {
-        this.index = index;
-        this.type = type;
-        this.unique = unique;
-    }
-}
 
 export class CreateTable extends Instruction {
     tableName: string;
@@ -58,7 +50,12 @@ export class CreateTable extends Instruction {
         this.members = members;
         this.primary = primary;
     }
+
+    toTableHeader(): TableHeader {
+        return new TableHeader(this.tableName, this.members, this.primary);
+    }
 }
+
 
 export class Select extends Instruction {
     names: string[];

@@ -7,10 +7,12 @@
     IN, // IS NULL
 }
 
+export type ValueType = boolean | string | number;
+
 export class AST {
     astType: ASTType;
     constructor(astType: ASTType) { this.astType = astType; }
-    evaluate(map : Object) : boolean | string | number {
+    evaluate(map: Object) : ValueType {
         return true;
     }
 }
@@ -22,7 +24,7 @@ export class IsNullAST extends AST {
         this.value = value;
     }
 
-    evaluate(map): boolean | string | number {
+    evaluate(map): ValueType {
         if (this.value.evaluate(map)) {
             return true;
         }
@@ -52,7 +54,7 @@ export class BinopAST extends AST {
         this.right = right;
     }
 
-    evaluate(map: Object): boolean {
+    evaluate(map): boolean {
         const lhs = this.left.evaluate(map);
         const rhs = this.right.evaluate(map);
         switch (this.op) {
@@ -99,9 +101,9 @@ export class IdAST extends AST{
         this.name = name;
     }
 
-    evaluate(map: Object): string | number {
-        if (Object.hasOwnProperty(this.name)) {
-            return Object[this.name];
+    evaluate(map): string | number {
+        if (map.hasOwnProperty(this.name)) {
+            return map[this.name];
         }
         return null;
     }
