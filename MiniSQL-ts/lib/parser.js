@@ -1,32 +1,31 @@
-﻿import instruction = require("./instruction");
-import Instruction = instruction.Instruction;
-import Tokenizer = require("./tokenizer");
-import Select = instruction.Select;
-import Delete = instruction.Delete;
-import DropIndex = instruction.DropIndex;
-import DropTable = instruction.DropTable;
-import CreateIndex = instruction.CreateIndex;
-import CreateTable = instruction.CreateTable;
-import Insert = instruction.Insert;
-import Ast = require("./ast");
-import AST = Ast.AST;
-import BINOP = Ast.BINOP;
-import Types = require("./types");
-import IType = Types.IType;
-import IntType = Types.IntType;
-import FloatType = Types.FloatType;
-import CharsType = Types.CharsType;
-import TableMember = instruction.TableMember;
-
-enum TokenType {
-    KEYWORD,
-    NUMBER,
-    STRING,
-    IDENT,
-    OPERATOR
-};
-
-function getTokenType(token: string): TokenType {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var instruction = require("./instruction");
+var Tokenizer = require("./tokenizer");
+var Select = instruction.Select;
+var Delete = instruction.Delete;
+var DropIndex = instruction.DropIndex;
+var DropTable = instruction.DropTable;
+var CreateIndex = instruction.CreateIndex;
+var CreateTable = instruction.CreateTable;
+var Insert = instruction.Insert;
+var Ast = require("./ast");
+var BINOP = Ast.BINOP;
+var Types = require("./types");
+var IntType = Types.IntType;
+var FloatType = Types.FloatType;
+var CharsType = Types.CharsType;
+var TableMember = instruction.TableMember;
+var TokenType;
+(function (TokenType) {
+    TokenType[TokenType["KEYWORD"] = 0] = "KEYWORD";
+    TokenType[TokenType["NUMBER"] = 1] = "NUMBER";
+    TokenType[TokenType["STRING"] = 2] = "STRING";
+    TokenType[TokenType["IDENT"] = 3] = "IDENT";
+    TokenType[TokenType["OPERATOR"] = 4] = "OPERATOR";
+})(TokenType || (TokenType = {}));
+;
+function getTokenType(token) {
     if (!token) {
         throw "pass null value into getTokenType()";
     }
@@ -59,71 +58,69 @@ function getTokenType(token: string): TokenType {
             return TokenType.IDENT;
     }
 }
-
-function parseRestriction(tokens: string[]): AST {
-
-//     syntax for restriction
-//     
-//     <restriction> ::= where <expression> ;
-//                     | ;
-//     
-//     <expression> ::= <and-expr> or <expression>
-//                    | <and-expr>
-//     
-//     <and-expr> ::= <not-expr> and <and-expr>
-//                  | <not-expr>
-//    
-//     <not-expr> ::= not <not-expr> 
-//                  | <factor>
-//    
-//     <factor> ::= ( <expression> )
-//                | <cmp-expr>
-//    
-//     <cmp-expr> ::= <value> == <value>
-//                  | <value> <> <value>
-//                  | <value> > <value>
-//                  | <value> < <value>
-//                  | <value> is null
-//                  | <value> is not null
-//    
-//     <value> ::= <identifier>
-//               | <string-literal>
-//               | <int-literal>
-//               | <bool-literal>
-//               | <float-literal>
-
-    let position = 0;
-    const max = tokens.length;
-    function current(): string {
+function parseRestriction(tokens) {
+    //     syntax for restriction
+    //     
+    //     <restriction> ::= where <expression> ;
+    //                     | ;
+    //     
+    //     <expression> ::= <and-expr> or <expression>
+    //                    | <and-expr>
+    //     
+    //     <and-expr> ::= <not-expr> and <and-expr>
+    //                  | <not-expr>
+    //    
+    //     <not-expr> ::= not <not-expr> 
+    //                  | <factor>
+    //    
+    //     <factor> ::= ( <expression> )
+    //                | <cmp-expr>
+    //    
+    //     <cmp-expr> ::= <value> == <value>
+    //                  | <value> <> <value>
+    //                  | <value> > <value>
+    //                  | <value> < <value>
+    //                  | <value> is null
+    //                  | <value> is not null
+    //    
+    //     <value> ::= <identifier>
+    //               | <string-literal>
+    //               | <int-literal>
+    //               | <bool-literal>
+    //               | <float-literal>
+    var position = 0;
+    var max = tokens.length;
+    function current() {
         if (position < max)
             return tokens[position];
         else
             return null;
     }
-
     function shift() {
         if (position < max) {
-            const temp = tokens[position];
+            var temp = tokens[position];
             position++;
             return temp;
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    function match(str?: string): void {
+    function match(str) {
         if (str) {
             if (current() === str) {
                 position++;
-            } else {
-                throw `Parse Error : when parsing <restriction>, expected token \"${str}\" , actual token \"${current()}\"`;
             }
-        } else {
-            if (position < max) position++;
+            else {
+                throw "Parse Error : when parsing <restriction>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
         }
     }
-
-    function parseValue(): AST {
+    function parseValue() {
         switch (getTokenType(current())) {
             case TokenType.KEYWORD:
                 throw "Parse Error : when parsing <value>, unexpected token type: keyword";
@@ -139,15 +136,13 @@ function parseRestriction(tokens: string[]): AST {
                 throw "Parse Error : when parsing <value>, unexpected token type: unknown";
         }
     }
-
-    function parseCmpExpr(): AST {
-        const lhs = parseValue();
-        let lookAhead = current();
-
+    function parseCmpExpr() {
+        var lhs = parseValue();
+        var lookAhead = current();
         switch (getTokenType(lookAhead)) {
             case TokenType.KEYWORD:
                 if (lookAhead !== "is") {
-                    throw `Parse Error : when parsing <cmp-expr>, unexpected keyword ${lookAhead}`;
+                    throw "Parse Error : when parsing <cmp-expr>, unexpected keyword " + lookAhead;
                 }
                 match("is");
                 if (current() === "not") {
@@ -159,7 +154,7 @@ function parseRestriction(tokens: string[]): AST {
                 return new Ast.IsNullAST(parseValue());
             case TokenType.OPERATOR:
                 lookAhead = shift();
-                const rhs = parseValue();
+                var rhs = parseValue();
                 switch (lookAhead) {
                     case "=": return new Ast.BinopAST(BINOP.EQ, lhs, rhs);
                     case "<>": return new Ast.BinopAST(BINOP.NE, lhs, rhs);
@@ -172,45 +167,40 @@ function parseRestriction(tokens: string[]): AST {
                 throw "Parse Error : when parsing <value>, unexpected token type: unknown";
         }
     }
-
-    function parseFactor(): AST {
+    function parseFactor() {
         if (current() === "(") {
             match("(");
-            const temp = parseCmpExpr();
+            var temp = parseCmpExpr();
             match(")");
             return temp;
         }
         return parseCmpExpr();
     }
-
-    function parseNotExpr(): AST {
+    function parseNotExpr() {
         if (current() === "not") {
             match();
             return new Ast.NotAST(parseNotExpr());
         }
         return parseFactor();
     }
-
-    function parseAndExpr(): AST {
-        let cur = parseNotExpr();
+    function parseAndExpr() {
+        var cur = parseNotExpr();
         while (current() === "and") {
             match();
             cur = new Ast.BinopAST(BINOP.AN, cur, parseNotExpr());
         }
         return cur;
     }
-
-    function parseExpr(): AST {
-        let cur = parseAndExpr();
+    function parseExpr() {
+        var cur = parseAndExpr();
         while (current() === "or") {
             match();
             cur = new Ast.BinopAST(BINOP.OR, cur, parseAndExpr());
         }
         return cur;
     }
-
-    function parseRestric(): AST {
-        let temp: AST = null;
+    function parseRestric() {
+        var temp = null;
         if (current() === "where") {
             match(); // match "where"
             temp = parseExpr();
@@ -218,313 +208,285 @@ function parseRestriction(tokens: string[]): AST {
         match(";");
         return temp;
     }
-
     return parseRestric();
 }
-
-function parseSelect(tokens: string[]): Select {
-
-//     syntax for "select" :  
-//    
-//     <select-stmt> ::= select <identifiers> from <identifier> <restriction>
-//                       | select * from <identifier> <restriction>
-//    
-//     <identifiers> ::= <identifier> 
-//                     | <identifier> , <identifiers>
-//    
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
+function parseSelect(tokens) {
+    //     syntax for "select" :  
+    //    
+    //     <select-stmt> ::= select <identifiers> from <identifier> <restriction>
+    //                       | select * from <identifier> <restriction>
+    //    
+    //     <identifiers> ::= <identifier> 
+    //                     | <identifier> , <identifiers>
+    //    
+    var position = 0;
+    var max = tokens.length;
+    function current() {
         if (position < max)
             return tokens[position];
         else
             return null;
     }
-
     function shift() {
         if (position < max) {
-            const temp = tokens[position];
+            var temp = tokens[position];
             position++;
             return temp;
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    function match(str? : string): void {
+    function match(str) {
         if (str) {
             if (current() === str) {
                 position++;
-            } else {
-                throw `Parse Error : when parsing <select>, expected token \"${str}\" , actual token \"${
-                    current()}\"`;
             }
-        } else {
-            if (position < max) position++;
+            else {
+                throw "Parse Error : when parsing <select>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
         }
     }
-
-    function parseIdentifiers(): string[] {
-        const res: string[] = [];
+    function parseIdentifiers() {
+        var res = [];
         if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <identifiers>, expected identifier, got ${current()}`;
+            throw "Parse Error : when parsing <identifiers>, expected identifier, got " + current();
         }
         res.push(shift());
         while (current() === ",") {
-            match(","); 
+            match(",");
             if (getTokenType(current()) !== TokenType.IDENT) {
-                throw `Parse Error : when parsing <identifiers>, expected identifier, got ${current()}`;
+                throw "Parse Error : when parsing <identifiers>, expected identifier, got " + current();
             }
             res.push(shift());
         }
         return res;
     }
-
-    function parseSelectStmt(): Select {
-        let names: string[] = [];
+    function parseSelectStmt() {
+        var names = [];
         match("select");
         if (!(current() === "*")) {
             names = parseIdentifiers();
-        } else {
+        }
+        else {
             match("*");
         }
         match("from");
-        const tableName = shift();
-        const restriction = parseRestriction(tokens.slice(position, max));
+        var tableName = shift();
+        var restriction = parseRestriction(tokens.slice(position, max));
         return new Select(names, tableName, restriction);
     }
-
     return parseSelectStmt();
 }
-
-function parseDelete(tokens: string[]): Delete {
-
-//    delete is almost the same with Select
-//    
-//    <delete> ::= delete [*] from <identifier> <restriction> ;
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
+function parseDelete(tokens) {
+    //    delete is almost the same with Select
+    //    
+    //    <delete> ::= delete [*] from <identifier> <restriction> ;
+    var position = 0;
+    var max = tokens.length;
+    function current() {
         if (position < max)
             return tokens[position];
         else
             return null;
     }
-
     function shift() {
         if (position < max) {
-            const temp = tokens[position];
+            var temp = tokens[position];
             position++;
             return temp;
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    function match(str?: string): void {
+    function match(str) {
         if (str) {
             if (current() === str) {
                 position++;
-            } else {
-                throw `Parse Error : when parsing <delete>, expected token \"${str}\" , actual token \"${
-                current()}\"`;
             }
-        } else {
-            if (position < max) position++;
+            else {
+                throw "Parse Error : when parsing <delete>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
         }
     }
-
-    function parseDeleteStmt(): Delete {
+    function parseDeleteStmt() {
         match("delete");
-        if (current() === "*") match();
+        if (current() === "*")
+            match();
         match("from");
-        const tableName = shift();
-        const restriction = parseRestriction(tokens.slice(position, max));
+        var tableName = shift();
+        var restriction = parseRestriction(tokens.slice(position, max));
         return new Delete(tableName, restriction);
     }
-
     return parseDeleteStmt();
 }
-
-function parseDropIndex(tokens: string[]): DropIndex {
-
-//     syntax for drop index :
-//    
-//     <drop-index> ::= drop index <identifier> on <identifier>
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
-        if (position < max)
-            return tokens[position];
-        else
-            return null;
-    }
-
-    function shift() {
-        if (position < max) {
-            const temp = tokens[position];
-            position++;
-            return temp;
-        } else {
-            return null;
-        }
-    }
-
-    function match(str?: string): void {
-        if (str) {
-            if (current() === str) {
-                position++;
-            } else {
-                throw `Parse Error : when parsing <drop-index>, expected token \"${str}\" , actual token \"${
-                    current()}\"`;
-            }
-        } else {
-            if (position < max) position++;
-        }
-    }
-
-    function parseDropIndexStmt(): DropIndex {
-        match("drop");
-        match("index");
-        if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <drop-index>, unexpected token ${current()}`;
-        }
-        const indexName = shift();
-        match("on");
-        if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <drop-index>, unexpected token ${current()}`;
-        }
-        const tableName = shift();
-        match(";");
-        return new DropIndex(tableName, indexName);
-    }
-
-    return parseDropIndexStmt();
-}
-
-function parseDropTable(tokens: string[]): DropTable {
-
-//     syntax for drop table :
-//    
-//     <drop-index> ::= drop table <identifier> ;
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
-        if (position < max)
-            return tokens[position];
-        else
-            return null;
-    }
-
-    function shift() {
-        if (position < max) {
-            const temp = tokens[position];
-            position++;
-            return temp;
-        } else {
-            return null;
-        }
-    }
-
-    function match(str?: string): void {
-        if (str) {
-            if (current() === str) {
-                position++;
-            } else {
-                throw `Parse Error : when parsing <drop-table>, expected token \"${str}\" , actual token \"${
-                    current()}\"`;
-            }
-        } else {
-            if (position < max) position++;
-        }
-    }
-
-    function parseDropTableStmt(): DropTable {
-        match("drop");
-        match("table");
-        if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <drop-table>, unexpected token ${current()}`;
-        }
-        const tableName = shift();
-        match(";");
-        return new DropTable(tableName);
-    }
-
-    return parseDropTableStmt();
-}
-
-function parseCreateIndex(tokens: string[]): CreateIndex {
-
-
+function parseDropIndex(tokens) {
     //     syntax for drop index :
     //    
     //     <drop-index> ::= drop index <identifier> on <identifier>
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
+    var position = 0;
+    var max = tokens.length;
+    function current() {
         if (position < max)
             return tokens[position];
         else
             return null;
     }
-
     function shift() {
         if (position < max) {
-            const temp = tokens[position];
+            var temp = tokens[position];
             position++;
             return temp;
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    function match(str?: string): void {
+    function match(str) {
         if (str) {
             if (current() === str) {
                 position++;
-            } else {
-                throw `Parse Error : when parsing <create-index>, expected token \"${str}\" , actual token \"${
-                    current()}\"`;
             }
-        } else {
-            if (position < max) position++;
+            else {
+                throw "Parse Error : when parsing <drop-index>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
         }
     }
-
-    function parseCreateIndexStmt(): CreateIndex {
+    function parseDropIndexStmt() {
+        match("drop");
+        match("index");
+        if (getTokenType(current()) !== TokenType.IDENT) {
+            throw "Parse Error : when parsing <drop-index>, unexpected token " + current();
+        }
+        var indexName = shift();
+        match("on");
+        if (getTokenType(current()) !== TokenType.IDENT) {
+            throw "Parse Error : when parsing <drop-index>, unexpected token " + current();
+        }
+        var tableName = shift();
+        match(";");
+        return new DropIndex(tableName, indexName);
+    }
+    return parseDropIndexStmt();
+}
+function parseDropTable(tokens) {
+    //     syntax for drop table :
+    //    
+    //     <drop-index> ::= drop table <identifier> ;
+    var position = 0;
+    var max = tokens.length;
+    function current() {
+        if (position < max)
+            return tokens[position];
+        else
+            return null;
+    }
+    function shift() {
+        if (position < max) {
+            var temp = tokens[position];
+            position++;
+            return temp;
+        }
+        else {
+            return null;
+        }
+    }
+    function match(str) {
+        if (str) {
+            if (current() === str) {
+                position++;
+            }
+            else {
+                throw "Parse Error : when parsing <drop-table>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
+        }
+    }
+    function parseDropTableStmt() {
+        match("drop");
+        match("table");
+        if (getTokenType(current()) !== TokenType.IDENT) {
+            throw "Parse Error : when parsing <drop-table>, unexpected token " + current();
+        }
+        var tableName = shift();
+        match(";");
+        return new DropTable(tableName);
+    }
+    return parseDropTableStmt();
+}
+function parseCreateIndex(tokens) {
+    //     syntax for drop index :
+    //    
+    //     <drop-index> ::= drop index <identifier> on <identifier>
+    var position = 0;
+    var max = tokens.length;
+    function current() {
+        if (position < max)
+            return tokens[position];
+        else
+            return null;
+    }
+    function shift() {
+        if (position < max) {
+            var temp = tokens[position];
+            position++;
+            return temp;
+        }
+        else {
+            return null;
+        }
+    }
+    function match(str) {
+        if (str) {
+            if (current() === str) {
+                position++;
+            }
+            else {
+                throw "Parse Error : when parsing <create-index>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
+        }
+    }
+    function parseCreateIndexStmt() {
         match("create");
         match("index");
         if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <create-index>, unexpected token ${current()}`;
+            throw "Parse Error : when parsing <create-index>, unexpected token " + current();
         }
-        const indexName = shift();
+        var indexName = shift();
         match("on");
         if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <create-index>, unexpected token ${current()}`;
+            throw "Parse Error : when parsing <create-index>, unexpected token " + current();
         }
-        const tableName = shift();
+        var tableName = shift();
         match("(");
-        const elementName = shift();
+        var elementName = shift();
         match(")");
         match(";");
         return new CreateIndex(tableName, indexName, elementName);
     }
-
     return parseCreateIndexStmt();
 }
-
-function parseCreateTable(tokens: string[]): CreateTable {
-
+function parseCreateTable(tokens) {
     // syntax for create table
     // 
     // <create-table> ::= create table <identifier> ( <member-definitions> <prim-specific> ) ; 
@@ -543,41 +505,39 @@ function parseCreateTable(tokens: string[]): CreateTable {
     //
     // <prim-specific> ::= primary key ( <identifier> ) 
     //                   | 
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
+    var position = 0;
+    var max = tokens.length;
+    function current() {
         if (position < max)
             return tokens[position];
         else
             return null;
     }
-
     function shift() {
         if (position < max) {
-            const temp = tokens[position];
+            var temp = tokens[position];
             position++;
             return temp;
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    function match(str?: string): void {
+    function match(str) {
         if (str) {
             if (current() === str) {
                 position++;
-            } else {
-                throw `Parse Error : when parsing <create-table>, expected token \"${str}\" , actual token \"${
-                    current()}\"`;
             }
-        } else {
-            if (position < max) position++;
+            else {
+                throw "Parse Error : when parsing <create-table>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
         }
     }
-
-    function parseType(): IType {
+    function parseType() {
         switch (current()) {
             case "int":
                 match();
@@ -589,32 +549,33 @@ function parseCreateTable(tokens: string[]): CreateTable {
                 match();
                 match("(");
                 if (!parseInt(current())) {
-                    throw `Parse Error : when parsing <char-type> in <create-table>, unexpected token : ${current()}`;
+                    throw "Parse Error : when parsing <char-type> in <create-table>, unexpected token : " + current();
                 }
-                const temp = parseInt(shift());
+                var temp = parseInt(shift());
                 match(")");
                 return new CharsType(temp);
             default:
-                throw `Parse Error : when parsing <type> in <create-table>, unexpected token : ${current()}`;
+                throw "Parse Error : when parsing <type> in <create-table>, unexpected token : " + current();
         }
     }
-
-    function parseMemberDefs(): TableMember[] {
-        const memberDefs: TableMember[] = [];
-        const name = shift();
-        const type = parseType();
-        let unique = false;
+    function parseMemberDefs() {
+        var memberDefs = [];
+        var name = shift();
+        var type = parseType();
+        var unique = false;
         if (current() === "unique") {
             match();
             unique = true;
         }
         memberDefs.push(new TableMember(name, type, unique));
-;       while (current() === ",") {
+        ;
+        while (current() === ",") {
             match();
-            if (current() === "primary") break;
-            const name1 = shift();
-            const type1 = parseType();
-            let unique1 = false;
+            if (current() === "primary")
+                break;
+            var name1 = shift();
+            var type1 = parseType();
+            var unique1 = false;
             if (current() === "unique") {
                 match();
                 unique1 = true;
@@ -623,90 +584,85 @@ function parseCreateTable(tokens: string[]): CreateTable {
         }
         return memberDefs;
     }
-
-    function parsePrimSpecific(): string {
+    function parsePrimSpecific() {
         if (current() === "primary") {
             match();
             match("key");
             match("(");
             if (getTokenType(current()) === TokenType.IDENT) {
-                let temp = shift();
+                var temp = shift();
                 match(")");
                 return temp;
             }
-
-            throw `Parse Error : when parsing <prim-specific>, unexpected token ${current()}`;
+            throw "Parse Error : when parsing <prim-specific>, unexpected token " + current();
         }
         return null;
     }
-
-    function parseCreateTableStmt(): CreateTable {
+    function parseCreateTableStmt() {
         match("create");
         match("table");
         if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <create-table>, unexpected token ${current()}`;
+            throw "Parse Error : when parsing <create-table>, unexpected token " + current();
         }
-        const tableName = shift();
+        var tableName = shift();
         match("(");
-        const memberDef = parseMemberDefs();
-        const prim = parsePrimSpecific();
+        var memberDef = parseMemberDefs();
+        var prim = parsePrimSpecific();
         match(")");
         match(";");
         return new CreateTable(tableName, memberDef, prim);
     }
-
     return parseCreateTableStmt();
 }
-
-function parseInsert(tokens: string[]): Insert {
-
+function parseInsert(tokens) {
     // syntax for insert :
     // <insert> ::= insert into <identifier> values ( <values> ) ;
     // <values> ::= <value> , <values>
     //            | <value>
     // <value>  ::= <integer> | <float> | <string> | 
-
-    let position = 0;
-    const max = tokens.length;
-
-    function current(): string {
+    var position = 0;
+    var max = tokens.length;
+    function current() {
         if (position < max)
             return tokens[position];
         else
             return null;
     }
-
     function shift() {
         if (position < max) {
-            const temp = tokens[position];
+            var temp = tokens[position];
             position++;
             return temp;
-        } else {
+        }
+        else {
             return null;
         }
     }
-
-    function match(str?: string): void {
+    function match(str) {
         if (str) {
             if (current() === str) {
                 position++;
-            } else {
-                throw `Parse Error : when parsing <insert>, expected token \"${str}\" , actual token \"${current()}\"`;
             }
-        } else {
-            if (position < max) position++;
+            else {
+                throw "Parse Error : when parsing <insert>, expected token \"" + str + "\" , actual token \"" + current() + "\"";
+            }
+        }
+        else {
+            if (position < max)
+                position++;
         }
     }
-
-    function parseValue() : (string | number) {
-        if (current() === "," || current() === ")") return null;
-        if (getTokenType(current()) === TokenType.STRING) return shift();
-        if (getTokenType(current()) === TokenType.NUMBER) return parseFloat(shift());
-        throw `Parse Error : when parsing <value> in <insert>, unexpected token${current()}`;
+    function parseValue() {
+        if (current() === "," || current() === ")")
+            return null;
+        if (getTokenType(current()) === TokenType.STRING)
+            return shift();
+        if (getTokenType(current()) === TokenType.NUMBER)
+            return parseFloat(shift());
+        throw "Parse Error : when parsing <value> in <insert>, unexpected token" + current();
     }
-
-    function parseValues(): (string | number)[] {
-        const res: (string | number)[] = [];
+    function parseValues() {
+        var res = [];
         res.push(parseValue());
         while (current() === ",") {
             match();
@@ -714,27 +670,24 @@ function parseInsert(tokens: string[]): Insert {
         }
         return res;
     }
-
-    function parseInsertStmt(): Insert {
+    function parseInsertStmt() {
         match("insert");
         match("into");
         if (getTokenType(current()) !== TokenType.IDENT) {
-            throw `Parse Error : when parsing <insert>, unexpected token ${current()}`;
+            throw "Parse Error : when parsing <insert>, unexpected token " + current();
         }
-        const tableName = shift();
+        var tableName = shift();
         match("values");
         match("(");
-        const values = parseValues();
+        var values = parseValues();
         match(")");
         match(";");
         return new Insert(tableName, values);
     }
-
     return parseInsertStmt();
 }
-
-export function parser(inst : string) : Instruction {
-    const tokens = Tokenizer.tokenizer(inst);
+function parser(inst) {
+    var tokens = Tokenizer.tokenizer(inst);
     switch (tokens[0]) {
         case "select":
             return parseSelect(tokens);
@@ -743,30 +696,34 @@ export function parser(inst : string) : Instruction {
         case "drop":
             if (tokens[1] === "index") {
                 return parseDropIndex(tokens);
-            } else if (tokens[1] === "table") {
+            }
+            else if (tokens[1] === "table") {
                 return parseDropTable(tokens);
             }
-            throw `unrecognized token "${tokens[1]}" after drop keyword`;
+            throw "unrecognized token \"" + tokens[1] + "\" after drop keyword";
         case "create":
             if (tokens[1] === "index") {
                 return parseCreateIndex(tokens);
-            } else if (tokens[1] === 'table') {
+            }
+            else if (tokens[1] === 'table') {
                 return parseCreateTable(tokens);
             }
-            throw `unrecognized token "${tokens[1]}" after create keyword`;
+            throw "unrecognized token \"" + tokens[1] + "\" after create keyword";
         case "insert":
             return parseInsert(tokens);
         default:
-            throw `unrecognized syntax with leading "${tokens[0]}"`; 
+            throw "unrecognized syntax with leading \"" + tokens[0] + "\"";
     }
 }
-
-export function parse(code : string) : Instruction {
+function parse(code) {
     try {
-        let res = parser(code);
+        var res = parser(code);
         return res;
-    } catch (e) {
+    }
+    catch (e) {
         console.error(e);
         return null;
-    } 
+    }
 }
+exports.parse = parse;
+//# sourceMappingURL=parser.js.map

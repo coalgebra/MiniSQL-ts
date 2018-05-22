@@ -21,9 +21,9 @@ var FloatType = /** @class */ (function () {
 }());
 exports.FloatType = FloatType;
 var CharsType = /** @class */ (function () {
-    function CharsType(btype, count) {
+    function CharsType(count) {
         this.btype = BasicType.CHARS;
-        this.btype = btype;
+        this.btype = BasicType.CHARS;
         this.count = count;
     }
     return CharsType;

@@ -20,8 +20,8 @@ export class CharsType implements IType {
     btype = BasicType.CHARS;
     count: number;
 
-    constructor(btype: BasicType, count: number) {
-        this.btype = btype;
+    constructor(count: number) {
+        this.btype = BasicType.CHARS;
         this.count = count;
     }
 }

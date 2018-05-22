@@ -34,18 +34,28 @@ export class CreateIndex extends Instruction{
     }
 }
 
+
+export class TableMember {
+    index: string;
+    type: IType;
+    unique: boolean;
+
+    constructor(index: string, type: Types.IType, unique: boolean) {
+        this.index = index;
+        this.type = type;
+        this.unique = unique;
+    }
+}
+
 export class CreateTable extends Instruction {
     tableName: string;
-    indices: string[];
-    types: IType[];
-    uniqueFlags: boolean[];
+    members: TableMember[];
     primary: string;
 
-    constructor( tableName: string, indices: string[], types: Types.IType[], primary : string) {
+    constructor( tableName: string, members: TableMember[], primary : string) {
         super(InstType.CREATE_TABLE);
         this.tableName = tableName;
-        this.indices = indices;
-        this.types = types;
+        this.members = members;
         this.primary = primary;
     }
 }
@@ -96,9 +106,9 @@ export class DropIndex extends Instruction {
 
 export class Insert extends Instruction {
     tableName: string;
-    values: (number | string | boolean)[];
+    values: (number | string)[];
 
-    constructor(tableName: string, values: (number | string | boolean)[]) {
+    constructor(tableName: string, values: (number | string)[]) {
         super(InstType.INSERT);
         this.tableName = tableName;
         this.values = values;
