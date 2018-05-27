@@ -1,10 +1,5 @@
-﻿import Types = require("./types");
-import IType = Types.IType;
-import Ast = require("./ast");
-import AST = Ast.AST;
-import Tables = require("./tables");
-import TableMember = Tables.TableMember;
-import TableHeader = Tables.TableHeader;
+﻿import {TableMember, TableHeader } from "./tables";
+import {AST} from "./ast";
 
 export enum InstType {
     CREATE_INDEX,
@@ -22,7 +17,6 @@ export class Instruction {
         this.itype = type;
     }
 }
-
 
 export class CreateIndex extends Instruction{
     indexName: string;
@@ -62,7 +56,7 @@ export class Select extends Instruction {
     tableName: string;
     restriction: AST;
 
-    constructor(names: string[], tableName: string, restriction: Ast.AST) {
+    constructor(names: string[], tableName: string, restriction: AST) {
         super(InstType.SELECT);
         this.names = names;
         this.tableName = tableName;
@@ -74,7 +68,7 @@ export class Delete extends Instruction {
     tableName: string;
     restriction: AST;
 
-    constructor(tableName: string, restriction: Ast.AST) {
+    constructor(tableName: string, restriction: AST) {
         super(InstType.DELETE);
         this.tableName = tableName;
         this.restriction = restriction;

@@ -1,25 +1,24 @@
-﻿import Types = require("./types");
-import IType = Types.IType;
-import Ast = require("./ast");
-import ValueType = Ast.ValueType;
-import Instruction = require("./instruction");
-import CreateTable = Instruction.CreateTable;
-import CreateIndex = Instruction.CreateIndex;
-import Insert = Instruction.Insert;
-import Delete = Instruction.Delete;
-import DropIndex = Instruction.DropIndex;
-import DropTable = Instruction.DropTable;
+﻿import {IType, parseType } from "./types";
 
 export class TableMember {
     index: string;
     type: IType;
     unique: boolean;
 
-    constructor(index: string, type: Types.IType, unique: boolean) {
+    constructor(index: string, type: IType, unique: boolean) {
         this.index = index;
         this.type = type;
         this.unique = unique;
     }
+
+    toString(): string {
+        return JSON.stringify({index: this.index, type: this.type.toString(), unique:this.unique});
+    }
+}
+
+export function parseTableMember(json: string): TableMember {
+    const temp = JSON.parse(json);
+    return new TableMember(temp.index, parseType(temp.type), temp.unique);
 }
 
 export class TableHeader {
@@ -32,28 +31,45 @@ export class TableHeader {
         this.members = members;
         this.primary = primary;
     }
-}
 
-export class Record {
-    table: TableHeader;
-    value: ValueType[];
-
-    constructor(table: TableHeader, value: Ast.ValueType[]) {
-        this.table = table;
-        this.value = value;
+    toString(): string {
+        return JSON.stringify({name : this.name, members: this.members.map(x => x.toString()), primary: "primary"});
     }
 }
+
+export function parseTableHeader(header: string): TableHeader {
+    const temp = JSON.parse(header);
+    return new TableHeader(temp.name, temp.members.map(x => parseTableMember(x)), temp.primary);
+}
+
+//export class Record {
+//    table: TableHeader;
+//    value: ValueType[];
+//
+//    constructor(table: TableHeader, value: Ast.ValueType[]) {
+//        this.table = table;
+//        this.value = value;
+//    }
+//}
 
 export class Table {
     header: TableHeader;
-    records: Record[];
+//    records: Record[];
     indices: Index[];
 
-    constructor(header: TableHeader) {
+    constructor(header: TableHeader, indices : Index[]) {
         this.header = header;
-        this.records = [];
-        this.indices = [];
+//        this.records = [];
+        this.indices = indices;
     }
+
+    tableMetaData(): string {
+        return JSON.stringify({ header: this.header.toString(), indices: this.indices.map(x => x.toString()) });
+    }
+}
+
+export function parseTable(temp: any): Table {
+    return new Table(parseTableHeader(temp.header), temp.indices.map(x => parseIndex(x)));
 }
 
 export class Index {
@@ -63,77 +79,13 @@ export class Index {
         this.name = name;
         this.index = index;
     }
+    toString() {
+        return JSON.stringify({ name: this.name, index: this.index });
+    }
 }
 
-class Catalog {
-    tables: Table[];
-
-    constructor() {
-        this.tables = [];
-    }
-
-    createTable(inst: CreateTable): string {
-
-        // search table with same name : 
-        for (let table of this.tables) {
-            if (table.header.name === inst.tableName) {
-                throw `Runtime Error : when creating table ${inst.tableName}, table with same name was created before`;
-            }
-        }
-
-        // create the table:
-        this.tables.push(new Table(inst.toTableHeader()));
-
-        return `create table ${inst.tableName} success`;
-    }
-
-    createIndex(inst: CreateIndex): string {
-
-        let target: Table = null;
-
-        // search table
-        for (let table of this.tables) {
-            if (table.header.name === inst.tableName) {
-                target = table;
-                break;
-            }
-        }
-
-        if (!target) {
-            throw `Runtime Error : when creating index ${inst.indexName} on table ${inst.tableName}, cannot find such table`;
-        }
-
-        // check same index
-
-        for (let x of target.indices) {
-            if (x.index === inst.tableName) {
-                throw `Runtime Error : when creating index ${inst.indexName} on table ${inst.tableName}, there already exists an index with the same name`;
-            }
-        }
-
-        target.indices.push(new Index(inst.indexName, inst.elementName));
-
-        return `create index ${inst.indexName} on table ${inst.tableName} success`;
-    }
-
-    insert(inst: Insert): string {
-        // TODO
-        return null;
-    }
-
-    delete(inst: Delete): string {
-        // TODO
-        return null;
-    }
-
-    dropIndex(inst: DropIndex): string {
-        // TODO
-        return null;
-    }
-
-    dropTable(inst: DropTable): string {
-        // TODO
-        return null;
-    }
-
+export function parseIndex(index: string): Index {
+    const temp = JSON.parse(index);
+    return new Index(temp.name, temp.index);
 }
+

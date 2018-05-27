@@ -1,26 +1,19 @@
-﻿import {Table, Index, parseTable } from "./tables";
-import {CreateTable, CreateIndex, Insert, Delete, DropIndex, DropTable } from "./instruction";
-import {writeFileSync, readFileSync} from "fs";
-
-export class Catalog {
-
-    tables: Table[];
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const tables_1 = require("./tables");
+const fs_1 = require("fs");
+class Catalog {
     constructor() {
         this.tables = [];
     }
-
-    createTable(inst: CreateTable): string {
-
+    createTable(inst) {
         // search table with same name : 
         for (let table of this.tables) {
             if (table.header.name === inst.tableName) {
                 throw `Runtime Error : when creating table ${inst.tableName}, table with same name was created before`;
             }
         }
-
         let flag = false;
-
         for (let i = 0; i < inst.members.length; i++) {
             for (let j = i + 1; j < inst.members.length; j++) {
                 if (inst.members[i].index === inst.members[j].index) {
@@ -34,21 +27,15 @@ export class Catalog {
                 }
             }
         }
-
         if (inst.primary && !flag) {
             throw `Runtime Error : when creating table ${inst.tableName}, primary key ${inst.primary} is not found in the table`;
         }
-
         // create the table:
-        this.tables.push(new Table(inst.toTableHeader(), []));
-
+        this.tables.push(new tables_1.Table(inst.toTableHeader(), []));
         return `create table ${inst.tableName} success`;
     }
-
-    createIndex(inst: CreateIndex): string {
-
-        let target: Table = null;
-
+    createIndex(inst) {
+        let target = null;
         // search table
         for (let table of this.tables) {
             if (table.header.name === inst.tableName) {
@@ -56,54 +43,44 @@ export class Catalog {
                 break;
             }
         }
-
         if (!target) {
             throw `Runtime Error : when creating index ${inst.indexName} on table ${inst.tableName}, cannot find such table`;
         }
-
         // check same index
-
         for (let x of target.indices) {
-            if (x.index === inst.indexName) {
+            if (x.index === inst.tableName) {
                 throw `Runtime Error : when creating index ${inst.indexName} on table ${inst.tableName}, there already exists an index with the same name`;
             }
         }
-
-        target.indices.push(new Index(inst.indexName, inst.elementName));
-
+        target.indices.push(new tables_1.Index(inst.indexName, inst.elementName));
         return `create index ${inst.indexName} on table ${inst.tableName} success`;
     }
-
     writeTableFile() {
-        writeFileSync("table.json", this.tables.map(x => x.toString()));
+        fs_1.writeFileSync("table.json", this.tables.map(x => x.toString()));
     }
-
     readTableFile() {
         this.tables = [];
-        const temp = readFileSync("table.json");
+        const temp = fs_1.readFileSync("table.json");
         const content = temp.toString();
         const temp2 = JSON.parse(content);
-        this.tables = temp2.tables.map(x => parseTable(x));
+        this.tables = temp2.tables.map(x => tables_1.parseTable(x));
     }
-
-    insert(inst: Insert): string {
+    insert(inst) {
         // TODO
         return `insert value success`;
     }
-
-    delete(inst: Delete): string {
+    delete(inst) {
         // TODO
         return `delete value success`;
     }
-
-    dropIndex(inst: DropIndex): string {
+    dropIndex(inst) {
         // TODO
         return `drop index ${inst.indexName} on table ${inst.tableName} success`;
     }
-
-    dropTable(inst: DropTable): string {
+    dropTable(inst) {
         // TODO
         return `drop table ${inst.tableName}`;
     }
-
 }
+exports.Catalog = Catalog;
+//# sourceMappingURL=catalog.js.map

@@ -6,27 +6,55 @@ var BasicType;
     BasicType[BasicType["FLOAT"] = 1] = "FLOAT";
     BasicType[BasicType["CHARS"] = 2] = "CHARS";
 })(BasicType = exports.BasicType || (exports.BasicType = {}));
-var IntType = /** @class */ (function () {
-    function IntType() {
+function parseType(type) {
+    switch (type[0]) {
+        case "i":
+            return new IntType();
+        case "f":
+            return new FloatType();
+        case "c":
+            return new CharsType(parseInt(type.substr(5, type.length - 6)));
+        default:
+            return null;
+    }
+}
+exports.parseType = parseType;
+class IntType {
+    constructor() {
         this.btype = BasicType.INT;
     }
-    return IntType;
-}());
+    getSize() {
+        return 4;
+    }
+    toString() {
+        return "int";
+    }
+}
 exports.IntType = IntType;
-var FloatType = /** @class */ (function () {
-    function FloatType() {
+class FloatType {
+    constructor() {
         this.btype = BasicType.FLOAT;
     }
-    return FloatType;
-}());
+    getSize() {
+        return 8;
+    }
+    toString() {
+        return "float";
+    }
+}
 exports.FloatType = FloatType;
-var CharsType = /** @class */ (function () {
-    function CharsType(count) {
+class CharsType {
+    constructor(count) {
         this.btype = BasicType.CHARS;
         this.btype = BasicType.CHARS;
         this.count = count;
     }
-    return CharsType;
-}());
+    getSize() {
+        return this.count;
+    }
+    toString() {
+        return `char(${this.count})`;
+    }
+}
 exports.CharsType = CharsType;
 //# sourceMappingURL=types.js.map

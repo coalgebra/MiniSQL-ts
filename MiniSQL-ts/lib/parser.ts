@@ -1,22 +1,8 @@
-﻿import instruction = require("./instruction");
-import Instruction = instruction.Instruction;
-import Tokenizer = require("./tokenizer");
-import Select = instruction.Select;
-import Delete = instruction.Delete;
-import DropIndex = instruction.DropIndex;
-import DropTable = instruction.DropTable;
-import CreateIndex = instruction.CreateIndex;
-import CreateTable = instruction.CreateTable;
-import Insert = instruction.Insert;
-import Ast = require("./ast");
-import AST = Ast.AST;
-import BINOP = Ast.BINOP;
-import Types = require("./types");
-import IType = Types.IType;
-import IntType = Types.IntType;
-import FloatType = Types.FloatType;
-import CharsType = Types.CharsType;
-import TableMember = instruction.TableMember;
+﻿import {AST, BINOP, NumLitAST, StrLitAST, IdAST, NotAST, IsNullAST, BinopAST } from "./ast";
+import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction } from "./instruction";
+import {IType, IntType, FloatType, CharsType } from "./types";
+import {TableMember} from "./tables";
+import {tokenizer} from "./tokenizer";
 
 enum TokenType {
     KEYWORD,
@@ -128,11 +114,11 @@ function parseRestriction(tokens: string[]): AST {
             case TokenType.KEYWORD:
                 throw "Parse Error : when parsing <value>, unexpected token type: keyword";
             case TokenType.NUMBER:
-                return new Ast.NumLitAST(parseFloat(shift()));
+                return new NumLitAST(parseFloat(shift()));
             case TokenType.STRING:
-                return new Ast.StrLitAST(shift());
+                return new StrLitAST(shift());
             case TokenType.IDENT:
-                return new Ast.IdAST(shift());
+                return new IdAST(shift());
             case TokenType.OPERATOR:
                 throw "Parse Error : when parsing <value>, unexpected token type: operator";
             default:
@@ -153,18 +139,18 @@ function parseRestriction(tokens: string[]): AST {
                 if (current() === "not") {
                     match();
                     match("null");
-                    return new Ast.NotAST(new Ast.IsNullAST(parseValue()));
+                    return new NotAST(new IsNullAST(lhs));
                 }
                 match("null");
-                return new Ast.IsNullAST(parseValue());
+                return new IsNullAST(lhs);
             case TokenType.OPERATOR:
                 lookAhead = shift();
                 const rhs = parseValue();
                 switch (lookAhead) {
-                    case "=": return new Ast.BinopAST(BINOP.EQ, lhs, rhs);
-                    case "<>": return new Ast.BinopAST(BINOP.NE, lhs, rhs);
-                    case ">": return new Ast.BinopAST(BINOP.LS, lhs, rhs);
-                    case "<": return new Ast.BinopAST(BINOP.GT, lhs, rhs);
+                    case "=": return new BinopAST(BINOP.EQ, lhs, rhs);
+                    case "<>": return new BinopAST(BINOP.NE, lhs, rhs);
+                    case ">": return new BinopAST(BINOP.LS, lhs, rhs);
+                    case "<": return new BinopAST(BINOP.GT, lhs, rhs);
                     default:
                         throw "Parse Error : when parsing <cmp-expr>, unknown error";
                 }
@@ -186,7 +172,7 @@ function parseRestriction(tokens: string[]): AST {
     function parseNotExpr(): AST {
         if (current() === "not") {
             match();
-            return new Ast.NotAST(parseNotExpr());
+            return new NotAST(parseNotExpr());
         }
         return parseFactor();
     }
@@ -195,7 +181,7 @@ function parseRestriction(tokens: string[]): AST {
         let cur = parseNotExpr();
         while (current() === "and") {
             match();
-            cur = new Ast.BinopAST(BINOP.AN, cur, parseNotExpr());
+            cur = new BinopAST(BINOP.AN, cur, parseNotExpr());
         }
         return cur;
     }
@@ -204,7 +190,7 @@ function parseRestriction(tokens: string[]): AST {
         let cur = parseAndExpr();
         while (current() === "or") {
             match();
-            cur = new Ast.BinopAST(BINOP.OR, cur, parseAndExpr());
+            cur = new BinopAST(BINOP.OR, cur, parseAndExpr());
         }
         return cur;
     }
@@ -517,7 +503,7 @@ function parseCreateIndex(tokens: string[]): CreateIndex {
         const elementName = shift();
         match(")");
         match(";");
-        return new CreateIndex(tableName, indexName, elementName);
+        return new CreateIndex(indexName, tableName, elementName);
     }
 
     return parseCreateIndexStmt();
@@ -734,7 +720,7 @@ function parseInsert(tokens: string[]): Insert {
 }
 
 export function parser(inst : string) : Instruction {
-    const tokens = Tokenizer.tokenizer(inst);
+    const tokens = tokenizer(inst);
     switch (tokens[0]) {
         case "select":
             return parseSelect(tokens);

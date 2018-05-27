@@ -1,14 +1,4 @@
 "use strict";
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var ASTType;
 (function (ASTType) {
@@ -19,31 +9,25 @@ var ASTType;
     ASTType[ASTType["SL"] = 4] = "SL";
     ASTType[ASTType["IN"] = 5] = "IN";
 })(ASTType = exports.ASTType || (exports.ASTType = {}));
-var AST = /** @class */ (function () {
-    function AST(astType) {
-        this.astType = astType;
-    }
-    AST.prototype.evaluate = function (map) {
+class AST {
+    constructor(astType) { this.astType = astType; }
+    evaluate(map) {
         return true;
-    };
-    return AST;
-}());
-exports.AST = AST;
-var IsNullAST = /** @class */ (function (_super) {
-    __extends(IsNullAST, _super);
-    function IsNullAST(value) {
-        var _this = _super.call(this, ASTType.IN) || this;
-        _this.value = value;
-        return _this;
     }
-    IsNullAST.prototype.evaluate = function (map) {
+}
+exports.AST = AST;
+class IsNullAST extends AST {
+    constructor(value) {
+        super(ASTType.IN);
+        this.value = value;
+    }
+    evaluate(map) {
         if (this.value.evaluate(map)) {
             return true;
         }
         return false;
-    };
-    return IsNullAST;
-}(AST));
+    }
+}
 exports.IsNullAST = IsNullAST;
 var BINOP;
 (function (BINOP) {
@@ -54,18 +38,16 @@ var BINOP;
     BINOP[BINOP["GT"] = 4] = "GT";
     BINOP[BINOP["LS"] = 5] = "LS"; // LESS
 })(BINOP = exports.BINOP || (exports.BINOP = {}));
-var BinopAST = /** @class */ (function (_super) {
-    __extends(BinopAST, _super);
-    function BinopAST(op, left, right) {
-        var _this = _super.call(this, ASTType.BP) || this;
-        _this.op = op;
-        _this.left = left;
-        _this.right = right;
-        return _this;
+class BinopAST extends AST {
+    constructor(op, left, right) {
+        super(ASTType.BP);
+        this.op = op;
+        this.left = left;
+        this.right = right;
     }
-    BinopAST.prototype.evaluate = function (map) {
-        var lhs = this.left.evaluate(map);
-        var rhs = this.right.evaluate(map);
+    evaluate(map) {
+        const lhs = this.left.evaluate(map);
+        const rhs = this.right.evaluate(map);
         switch (this.op) {
             case BINOP.AN:
                 if (typeof lhs === "boolean" && typeof rhs === "boolean") {
@@ -99,68 +81,55 @@ var BinopAST = /** @class */ (function (_super) {
                 return null;
         }
         return null;
-    };
-    return BinopAST;
-}(AST));
-exports.BinopAST = BinopAST;
-var IdAST = /** @class */ (function (_super) {
-    __extends(IdAST, _super);
-    function IdAST(name) {
-        var _this = _super.call(this, ASTType.ID) || this;
-        _this.name = name;
-        return _this;
     }
-    IdAST.prototype.evaluate = function (map) {
-        if (Object.hasOwnProperty(this.name)) {
-            return Object[this.name];
+}
+exports.BinopAST = BinopAST;
+class IdAST extends AST {
+    constructor(name) {
+        super(ASTType.ID);
+        this.name = name;
+    }
+    evaluate(map) {
+        if (map.hasOwnProperty(this.name)) {
+            return map[this.name];
         }
         return null;
-    };
-    return IdAST;
-}(AST));
+    }
+}
 exports.IdAST = IdAST;
-var NumLitAST = /** @class */ (function (_super) {
-    __extends(NumLitAST, _super);
-    function NumLitAST(value) {
-        var _this = _super.call(this, ASTType.NT) || this;
-        _this.value = value;
-        return _this;
+class NumLitAST extends AST {
+    constructor(value) {
+        super(ASTType.NT);
+        this.value = value;
     }
-    NumLitAST.prototype.evaluate = function (map) {
+    evaluate(map) {
         return this.value;
-    };
-    return NumLitAST;
-}(AST));
+    }
+}
 exports.NumLitAST = NumLitAST;
-var StrLitAST = /** @class */ (function (_super) {
-    __extends(StrLitAST, _super);
-    function StrLitAST(value) {
-        var _this = _super.call(this, ASTType.SL) || this;
-        _this.value = value;
-        return _this;
+class StrLitAST extends AST {
+    constructor(value) {
+        super(ASTType.SL);
+        this.value = value;
     }
-    StrLitAST.prototype.evaluate = function (map) {
+    evaluate(map) {
         return this.value;
-    };
-    return StrLitAST;
-}(AST));
-exports.StrLitAST = StrLitAST;
-var NotAST = /** @class */ (function (_super) {
-    __extends(NotAST, _super);
-    function NotAST(value) {
-        var _this = _super.call(this, ASTType.NT) || this;
-        _this.value = value;
-        return _this;
     }
-    NotAST.prototype.evaluate = function (map) {
-        var temp = this.value.evaluate(map);
+}
+exports.StrLitAST = StrLitAST;
+class NotAST extends AST {
+    constructor(value) {
+        super(ASTType.NT);
+        this.value = value;
+    }
+    evaluate(map) {
+        let temp = this.value.evaluate(map);
         if (typeof temp === "boolean") {
             return !temp;
         }
         return null;
-    };
-    return NotAST;
-}(AST));
+    }
+}
 exports.NotAST = NotAST;
 function createLiteral(value) {
     if (typeof value === "string") {
