@@ -1,5 +1,5 @@
 ﻿import {AST, BINOP, NumLitAST, StrLitAST, IdAST, NotAST, IsNullAST, BinopAST } from "./ast";
-import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction } from "./instruction";
+import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction , Exit, Load} from "./instruction";
 import {IType, IntType, FloatType, CharsType } from "./types";
 import {TableMember} from "./tables";
 import {tokenizer} from "./tokenizer";
@@ -33,7 +33,7 @@ function getTokenType(token: string): TokenType {
         case "on":
             return TokenType.KEYWORD;
         default:
-            if (parseFloat(token)) {
+            if (parseFloat(token) || token === "0") {
                 return TokenType.NUMBER;
             }
             if (token[0] === "\"") {
@@ -719,6 +719,11 @@ function parseInsert(tokens: string[]): Insert {
     return parseInsertStmt();
 }
 
+function parseLoad(tokens: string[]): Load {
+    if (tokens[2] !== ";") throw `parse error : when parsing <load>, cannot find ';'`;
+    return new Load(tokens[1]);
+} 
+
 export function parser(inst : string) : Instruction {
     const tokens = tokenizer(inst);
     switch (tokens[0]) {
@@ -742,6 +747,13 @@ export function parser(inst : string) : Instruction {
             throw `unrecognized token "${tokens[1]}" after create keyword`;
         case "insert":
             return parseInsert(tokens);
+        case "exit":
+            if (tokens.length > 2) {
+                throw `parse error : when parsing <exit>, more tokens than expected`;
+            }
+            return new Exit();
+        case "load":
+            return parseLoad(tokens);
         default:
             throw `unrecognized syntax with leading "${tokens[0]}"`; 
     }

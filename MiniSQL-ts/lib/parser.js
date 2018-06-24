@@ -35,7 +35,7 @@ function getTokenType(token) {
         case "on":
             return TokenType.KEYWORD;
         default:
-            if (parseFloat(token)) {
+            if (parseFloat(token) || token === "0") {
                 return TokenType.NUMBER;
             }
             if (token[0] === "\"") {
@@ -471,7 +471,7 @@ function parseCreateIndex(tokens) {
         const elementName = shift();
         match(")");
         match(";");
-        return new instruction_1.CreateIndex(tableName, indexName, elementName);
+        return new instruction_1.CreateIndex(indexName, tableName, elementName);
     }
     return parseCreateIndexStmt();
 }
@@ -675,6 +675,11 @@ function parseInsert(tokens) {
     }
     return parseInsertStmt();
 }
+function parseLoad(tokens) {
+    if (tokens[2] !== ";")
+        throw `parse error : when parsing <load>, cannot find ';'`;
+    return new instruction_1.Load(tokens[1]);
+}
 function parser(inst) {
     const tokens = tokenizer_1.tokenizer(inst);
     switch (tokens[0]) {
@@ -700,6 +705,13 @@ function parser(inst) {
             throw `unrecognized token "${tokens[1]}" after create keyword`;
         case "insert":
             return parseInsert(tokens);
+        case "exit":
+            if (tokens.length > 2) {
+                throw `parse error : when parsing <exit>, more tokens than expected`;
+            }
+            return new instruction_1.Exit();
+        case "load":
+            return parseLoad(tokens);
         default:
             throw `unrecognized syntax with leading "${tokens[0]}"`;
     }

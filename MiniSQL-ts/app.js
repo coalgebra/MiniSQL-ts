@@ -1,6 +1,4 @@
 "use strict";
-//import {*} from "readline";
-//import {} from "@types/readline-sync"
 Object.defineProperty(exports, "__esModule", { value: true });
 const readline = require("readline");
 const Parser = require("./lib/parser");
@@ -38,12 +36,17 @@ class Controller {
                 case instruction_1.InstType.DROP_TABLE:
                     return this.catalog.dropTable(inst);
                 case instruction_1.InstType.SELECT:
-                    //                    return this.catalog.se
                     return "we don't support select now";
                 case instruction_1.InstType.DELETE:
                     return this.catalog.delete(inst);
                 case instruction_1.InstType.INSERT:
                     return this.catalog.insert(inst);
+                case instruction_1.InstType.EXIT:
+                    this.catalog.exit(inst);
+                    console.log(`bye bye`);
+                    process.exit(0);
+                case instruction_1.InstType.LOAD:
+                    return this.catalog.load(inst);
                 default:
                     return "what the fuck";
             }

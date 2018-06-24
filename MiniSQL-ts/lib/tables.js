@@ -33,43 +33,28 @@ function parseTableHeader(header) {
     return new TableHeader(temp.name, temp.members.map(x => parseTableMember(x)), temp.primary);
 }
 exports.parseTableHeader = parseTableHeader;
-//export class Record {
-//    table: TableHeader;
-//    value: ValueType[];
-//
-//    constructor(table: TableHeader, value: Ast.ValueType[]) {
-//        this.table = table;
-//        this.value = value;
-//    }
-//}
 class Table {
-    constructor(header, indices) {
+    constructor(header, indices, freeHead) {
         this.header = header;
-        //        this.records = [];
         this.indices = indices;
+        this.freeHead = freeHead;
+        this.records = [];
     }
     tableMetaData() {
         return JSON.stringify({ header: this.header.toString(), indices: this.indices.map(x => x.toString()) });
     }
 }
 exports.Table = Table;
-function parseTable(temp) {
-    return new Table(parseTableHeader(temp.header), temp.indices.map(x => parseIndex(x)));
-}
-exports.parseTable = parseTable;
 class Index {
-    constructor(name, index) {
+    constructor(name, index, order) {
         this.name = name;
         this.index = index;
-    }
-    toString() {
-        return JSON.stringify({ name: this.name, index: this.index });
+        this.order = order;
     }
 }
 exports.Index = Index;
-function parseIndex(index) {
-    const temp = JSON.parse(index);
-    return new Index(temp.name, temp.index);
-}
-exports.parseIndex = parseIndex;
+//export function parseIndex(index: string): Index {
+//    const temp = JSON.parse(index);
+//    return new Index(temp.name, temp.index);
+//}
 //# sourceMappingURL=tables.js.map

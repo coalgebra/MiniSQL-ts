@@ -1,4 +1,5 @@
-﻿import {IType, parseType } from "./types";
+﻿import { IType, parseType } from "./types";
+import { Record } from "./records"; 
 
 export class TableMember {
     index: string;
@@ -42,25 +43,17 @@ export function parseTableHeader(header: string): TableHeader {
     return new TableHeader(temp.name, temp.members.map(x => parseTableMember(x)), temp.primary);
 }
 
-//export class Record {
-//    table: TableHeader;
-//    value: ValueType[];
-//
-//    constructor(table: TableHeader, value: Ast.ValueType[]) {
-//        this.table = table;
-//        this.value = value;
-//    }
-//}
-
 export class Table {
     header: TableHeader;
-//    records: Record[];
     indices: Index[];
+    freeHead: number;
+    records: (Record | number)[];
 
-    constructor(header: TableHeader, indices : Index[]) {
+    constructor(header: TableHeader, indices : Index[], freeHead : number) {
         this.header = header;
-//        this.records = [];
         this.indices = indices;
+        this.freeHead = freeHead;
+        this.records = [];
     }
 
     tableMetaData(): string {
@@ -68,24 +61,19 @@ export class Table {
     }
 }
 
-export function parseTable(temp: any): Table {
-    return new Table(parseTableHeader(temp.header), temp.indices.map(x => parseIndex(x)));
-}
-
 export class Index {
     name: string;
     index: string;
-    constructor(name: string, index: string) {
+    order: number[];
+    constructor(name: string, index: string, order: number[]) {
         this.name = name;
         this.index = index;
-    }
-    toString() {
-        return JSON.stringify({ name: this.name, index: this.index });
+        this.order = order;
     }
 }
 
-export function parseIndex(index: string): Index {
-    const temp = JSON.parse(index);
-    return new Index(temp.name, temp.index);
-}
+//export function parseIndex(index: string): Index {
+//    const temp = JSON.parse(index);
+//    return new Index(temp.name, temp.index);
+//}
 

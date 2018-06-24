@@ -2,11 +2,8 @@
 import {ValueType} from "./ast";
 
 export class Record {
-    table: TableHeader;
     value: ValueType[];
-
-    constructor(table: TableHeader, value: ValueType[]) {
-        this.table = table;
+    constructor(value: ValueType[]) {
         this.value = value;
     }
 }

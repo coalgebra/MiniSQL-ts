@@ -1,13 +1,11 @@
-﻿//import {*} from "readline";
-//import {} from "@types/readline-sync"
-
-import * as readline from "readline";
+﻿import * as readline from "readline";
 import * as Tokenizer from "./lib/tokenizer";
 import * as Parser from "./lib/parser";
 import parse = Parser.parse;
 import tokenize = Tokenizer.tokenizer;
 import {Catalog} from "./lib/catalog";
-import {Instruction, InstType, CreateTable, CreateIndex, DropIndex, DropTable, Delete, select, Insert} from "./lib/instruction";
+import { Instruction, InstType, CreateTable, CreateIndex, DropIndex, DropTable, Delete, select, Insert } from "./lib/instruction";
+import { Exit, Load} from "./lib/instruction";
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -42,12 +40,17 @@ class Controller {
                 case InstType.DROP_TABLE:
                     return this.catalog.dropTable(inst as DropTable);
                 case InstType.SELECT:
-//                    return this.catalog.se
                     return "we don't support select now";
                 case InstType.DELETE:
                     return this.catalog.delete(inst as Delete);
                 case InstType.INSERT:
                     return this.catalog.insert(inst as Insert);
+                case InstType.EXIT:
+                    this.catalog.exit(inst as Exit);
+                    console.log(`bye bye`);
+                    process.exit(0);
+                case InstType.LOAD:
+                    return this.catalog.load(inst as Load);
                 default:
                     return "what the fuck";
             }

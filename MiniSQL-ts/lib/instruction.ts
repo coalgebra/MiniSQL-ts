@@ -8,7 +8,9 @@ export enum InstType {
     DELETE,
     DROP_TABLE,
     DROP_INDEX,
-    INSERT
+    INSERT,
+    EXIT,
+    LOAD
 }
 
 export class Instruction {
@@ -21,16 +23,15 @@ export class Instruction {
 export class CreateIndex extends Instruction{
     indexName: string;
     tableName: string;
-    elementName: string;
+    fieldName: string;
 
     constructor(indexName: string, tableName: string, elementName: string) {
         super(InstType.CREATE_INDEX);
         this.indexName = indexName;
         this.tableName = tableName;
-        this.elementName = elementName;
+        this.fieldName = elementName;
     }
 }
-
 
 
 export class CreateTable extends Instruction {
@@ -103,6 +104,22 @@ export class Insert extends Instruction {
         super(InstType.INSERT);
         this.tableName = tableName;
         this.values = values;
+    }
+}
+
+export class Exit extends Instruction {
+    constructor() {
+        super(InstType.EXIT);
+    }
+}
+
+export class Load extends Instruction {
+
+    filename : string;
+
+    constructor(filename : string) {
+        super(InstType.LOAD);
+        this.filename = filename;
     }
 }
 

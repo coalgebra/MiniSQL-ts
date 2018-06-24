@@ -10,6 +10,8 @@ var InstType;
     InstType[InstType["DROP_TABLE"] = 4] = "DROP_TABLE";
     InstType[InstType["DROP_INDEX"] = 5] = "DROP_INDEX";
     InstType[InstType["INSERT"] = 6] = "INSERT";
+    InstType[InstType["EXIT"] = 7] = "EXIT";
+    InstType[InstType["LOAD"] = 8] = "LOAD";
 })(InstType = exports.InstType || (exports.InstType = {}));
 class Instruction {
     constructor(type) {
@@ -22,7 +24,7 @@ class CreateIndex extends Instruction {
         super(InstType.CREATE_INDEX);
         this.indexName = indexName;
         this.tableName = tableName;
-        this.elementName = elementName;
+        this.fieldName = elementName;
     }
 }
 exports.CreateIndex = CreateIndex;
@@ -78,6 +80,19 @@ class Insert extends Instruction {
     }
 }
 exports.Insert = Insert;
+class Exit extends Instruction {
+    constructor() {
+        super(InstType.EXIT);
+    }
+}
+exports.Exit = Exit;
+class Load extends Instruction {
+    constructor(filename) {
+        super(InstType.LOAD);
+        this.filename = filename;
+    }
+}
+exports.Load = Load;
 function select() {
 }
 exports.select = select;

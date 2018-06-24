@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 class Record {
-    constructor(table, value) {
-        this.table = table;
+    constructor(value) {
         this.value = value;
     }
 }
