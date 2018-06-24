@@ -680,6 +680,16 @@ function parseLoad(tokens) {
         throw `parse error : when parsing <load>, cannot find ';'`;
     return new instruction_1.Load(tokens[1]);
 }
+function parseShow(tokens) {
+    switch (tokens[1]) {
+        case "tables":
+            return new instruction_1.Show("tables");
+        case "index":
+            return new instruction_1.Show(tokens[1]);
+        default:
+            throw `unexpected token ${tokens[1]} when parsing <show> instruction`;
+    }
+}
 function parser(inst) {
     const tokens = tokenizer_1.tokenizer(inst);
     switch (tokens[0]) {
@@ -712,6 +722,8 @@ function parser(inst) {
             return new instruction_1.Exit();
         case "load":
             return parseLoad(tokens);
+        case "show":
+            return parseShow(tokens);
         default:
             throw `unrecognized syntax with leading "${tokens[0]}"`;
     }

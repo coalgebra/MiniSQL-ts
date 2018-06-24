@@ -1,5 +1,5 @@
 ﻿import {AST, BINOP, NumLitAST, StrLitAST, IdAST, NotAST, IsNullAST, BinopAST } from "./ast";
-import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction , Exit, Load} from "./instruction";
+import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction , Exit, Load, Show} from "./instruction";
 import {IType, IntType, FloatType, CharsType } from "./types";
 import {TableMember} from "./tables";
 import {tokenizer} from "./tokenizer";
@@ -724,6 +724,17 @@ function parseLoad(tokens: string[]): Load {
     return new Load(tokens[1]);
 } 
 
+function parseShow(tokens: string[]): Show {
+    switch (tokens[1]) {
+        case "tables":
+            return new Show("tables");
+        case "index":
+            return new Show(tokens[1]);
+        default:
+            throw `unexpected token ${tokens[1]} when parsing <show> instruction`;
+    }
+}
+
 export function parser(inst : string) : Instruction {
     const tokens = tokenizer(inst);
     switch (tokens[0]) {
@@ -754,6 +765,8 @@ export function parser(inst : string) : Instruction {
             return new Exit();
         case "load":
             return parseLoad(tokens);
+        case "show":
+            return parseShow(tokens);
         default:
             throw `unrecognized syntax with leading "${tokens[0]}"`; 
     }

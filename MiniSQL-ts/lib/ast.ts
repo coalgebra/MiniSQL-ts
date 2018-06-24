@@ -1,4 +1,7 @@
-﻿export enum ASTType{
+﻿import {Table, TableHeader } from "./tables";
+import {Record} from "./records";
+
+export enum ASTType{
     BP, // BINOP
     NT, // NOT
     ID, // IDENT
@@ -12,7 +15,7 @@ export type ValueType = boolean | string | number;
 export class AST {
     astType: ASTType;
     constructor(astType: ASTType) { this.astType = astType; }
-    evaluate(map: Object) : ValueType {
+    evaluate(map: [TableHeader, Record]) : ValueType {
         return true;
     }
 }
@@ -24,7 +27,7 @@ export class IsNullAST extends AST {
         this.value = value;
     }
 
-    evaluate(map): ValueType {
+    evaluate(map: [TableHeader, Record]): ValueType {
         if (this.value.evaluate(map)) {
             return true;
         }
@@ -54,7 +57,7 @@ export class BinopAST extends AST {
         this.right = right;
     }
 
-    evaluate(map): boolean {
+    evaluate(map: [TableHeader, Record]): boolean {
         const lhs = this.left.evaluate(map);
         const rhs = this.right.evaluate(map);
         switch (this.op) {
@@ -101,11 +104,18 @@ export class IdAST extends AST{
         this.name = name;
     }
 
-    evaluate(map): string | number {
-        if (map.hasOwnProperty(this.name)) {
-            return map[this.name];
+    evaluate(map: [TableHeader, Record]): string | number {
+        let pos = -1;
+        for (let i = 0; i < map[0].members.length; i++) {
+            if (map[0].members[i].index === this.name) {
+                pos = i;
+                break;
+            }
         }
-        return null;
+        if (pos === -1) {
+            throw `Can't find property of table ${map[0].name}`;
+        }
+        return map[1].value[pos] as string | number;
     }
 }
 
@@ -117,7 +127,7 @@ export class NumLitAST extends AST {
         this.value = value;
     }
 
-    evaluate(map): number {
+    evaluate(map: [TableHeader, Record]): number {
         return this.value;
     }
 }
@@ -130,7 +140,7 @@ export class StrLitAST extends AST {
         this.value = value;
     }
 
-    evaluate(map): string {
+    evaluate(map: [TableHeader, Record]): string {
         return this.value;
     }
 }
@@ -143,7 +153,7 @@ export class NotAST extends AST {
         this.value = value;
     }
 
-    evaluate(map): boolean {
+    evaluate(map: [TableHeader, Record]): boolean {
         let temp = this.value.evaluate(map);
         if (typeof temp === "boolean") {
             return !temp;

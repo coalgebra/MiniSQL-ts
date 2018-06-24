@@ -1,12 +1,11 @@
 ﻿import {Table, Index,  parseTableHeader, TableHeader } from "./tables";
-import {CreateTable, CreateIndex, Insert, Delete, DropIndex, DropTable, Exit, Load } from "./instruction";
+import {CreateTable, CreateIndex, Insert, Delete, DropIndex, DropTable, Exit, Load, Select, Show } from "./instruction";
 import {writeFileSync, readFileSync, writeFile, readFile, access, accessSync} from "fs";
 import { IType, BasicType } from "./types";
 import { Record } from "./records";
 
 const DATA_PATH = "data/";
 const TABLE_METADATA_PATH = DATA_PATH + "table.json";
-const INDEICES_PATH = DATA_PATH + "indices/";
 const RECORD_PATH = DATA_PATH + "records/";
 
 export class Catalog {
@@ -14,7 +13,6 @@ export class Catalog {
     tables: Table[];
 
     constructor() {
-//        this.tables = [];
         this.readTableFile();
     }
 
@@ -118,6 +116,7 @@ export class Catalog {
                     return ((target.records[a] as Record).value[fieldIndex] as number) >
                         ((target.records[b] as Record).value[fieldIndex] as number);
                 };
+                break;
             case BasicType.CHARS:
                 fun = (a: number, b: number) => {
                     return ((target.records[a] as Record).value[fieldIndex] as string) >
@@ -212,18 +211,15 @@ export class Catalog {
         // insert record into records
         if (target.freeHead !== -1) {
             let cur = target.freeHead;
-//            target.freeHead = target.records[cur] as number;
-//            target.records[cur] = new Record(inst.values);
             pos = cur;
         } else {
             pos = target.records.length;
-//            target.records.push(new Record(inst.values));
         }
 
-        let size = target.records.length;
-        let pos_s: number[] = [];
+        let posS: number[] = [];
         // insert records into indices
         for (let index of target.indices) {
+            let size = index.order.length;
             let field: number = -1;
             for (let i = 0; i < target.header.members.length; i++) {
                 if (index.index === target.header.members[i].index) {
@@ -232,18 +228,15 @@ export class Catalog {
                 }
             }
             if (!size) {
-//                index.order.push(pos);
-                pos_s.push(size);
+                posS.push(size);
                 continue;
             }
             if (inst.values[field] < (target.records[index.order[0]] as Record).value[field]) {
-//                index.order.unshift(pos);
-                pos_s.push(0);
+                posS.push(0);
                 continue;
             }
             if (inst.values[field] > (target.records[index.order[size - 1]] as Record).value[field]) {
-//                index.order.push(pos);
-                pos_s.push(size);
+                posS.push(size);
                 continue;
             }
             let l = 0, r = index.order.length - 1;
@@ -261,7 +254,7 @@ export class Catalog {
             if ((target.records[index.order[l]] as Record).value[field] === inst.values[field]) {
                 throw `not unique value on property ${index.index}`;
             }
-            pos_s.push(l);
+            posS.push(l);
 //            index.order.splice(l, 0, pos);
         }
 
@@ -275,14 +268,179 @@ export class Catalog {
 
         let i = 0;
         for (let index of target.indices) {
-            index.order.splice(pos_s[i], 0, pos);
+            index.order.splice(posS[i], 0, pos);
             i++;
         }
         return `insert value success`;
     }
 
     delete(inst: Delete): string {
+        let table: Table = null;
+        let records: Record[] = [];
+        for (let tab of this.tables) {
+            if (tab.header.name === inst.tableName) {
+                table = tab;
+                break;
+            }
+        }
+        if (!table) {
+            throw `Runtime Error : when deleting on ${inst.tableName}, cannot find such table`;
+        }
+
+        if (table.indices.length) { // there exists at least one index
+            let order = table.indices[0].order;
+            for (let i of order) {
+                if (!inst.restriction || inst.restriction.evaluate([table.header, table.records[i] as Record])) {
+                    records.push(table.records[i] as Record);
+                    let res = table.freeHead;
+                    table.freeHead = i;
+                    table.records[i] = res;
+                    for (let index of table.indices) {
+                        let pos = -1;
+                        for (let j = 0; j < index.order.length; j++) {
+                            if (index.order[j] === i) {
+                                pos = j;
+                                break;
+                            }
+                        }
+                        index.order.splice(pos, 1);
+                    }
+                }
+            }
+        } else { // no index
+            for (let i = 0; i < table.records.length; i++) {
+                if (typeof table.records[i] === "number") {
+                    continue;
+                } else {
+                    if (!inst.restriction || inst.restriction.evaluate([table.header, table.records[i] as Record])) {
+                        records.push(table.records[i] as Record);
+                        let res = table.freeHead;
+                        table.freeHead = i;
+                        table.records[i] = res;
+                        for (let index of table.indices) {
+                            let pos = -1;
+                            for (let j = 0; j < index.order.length; j++) {
+                                if (index.order[j] === i) {
+                                    pos = j;
+                                    break;
+                                }
+                            }
+                            index.order.splice(pos, 1);
+                        }
+                    }
+                }
+            }
+        }
+
+        console.log(`Found ${records.length} result${records.length ? "s" : ""} : `);
+        console.log("");
+        let header: string = "";
+        for (let i = 0; i < table.header.members.length; i++) {
+            header += table.header.members[i].index;
+            if (i !== table.header.members.length - 1) header += ", ";
+        }
+        console.log(`-------------------------------------------`);
+        console.log(header);
+        console.log(`-------------------------------------------`);
+        for (let rec of records) {
+            let res: string = "";
+            for (let i = 0; i < rec.value.length; i++) {
+                res += rec.value[i].toString();
+                if (i !== rec.value.length - 1) res += ", ";
+            }
+            console.log(res);
+        }
+        console.log(`-------------------------------------------`);
+        console.log("");
+
         return `delete value success`;
+    }
+
+    select(inst: Select): string {
+        let records: Record[] = [];
+        let table: Table = null;
+        for (let tab of this.tables) {
+            if (tab.header.name === inst.tableName) {
+                table = tab;
+                break;
+            }
+        }
+        if (!table) {
+            throw `Runtime Error : when selecting on ${inst.tableName}, cannot find such table`;
+        }
+        let poss: number[] = [];
+        if (inst.names.length) {
+            for (let name of inst.names) {
+                let pos = -1;
+                for (let i = 0; i < table.header.members.length; i++) {
+                    if (name === table.header.members[i].index) {
+                        pos = i;
+                        break;
+                    }
+                }
+                if (pos === -1) {
+                    throw `Runtime Error : when selecting on ${inst.tableName}, cannot find such field ${name}`;
+                }
+                poss.push(pos);
+            }
+        }
+        if (table.indices.length) { // there exists at least one index
+            let order = table.indices[0].order;
+            for (let i of order) {
+                if (!inst.restriction || inst.restriction.evaluate([table.header, table.records[i] as Record])) {
+                    records.push(table.records[i] as Record);
+                }
+            }
+        } else { // no index
+            for (let i = 0; i < table.records.length; i++) {
+                if (typeof table.records[i] === "number") {
+                    continue;
+                } else {
+                    if (!inst.restriction || inst.restriction.evaluate([table.header, table.records[i] as Record])) {
+                        records.push(table.records[i] as Record);
+                    }
+                }
+            }
+        }
+        console.log(`Found ${records.length} result${records.length ? "s" : ""} : `);
+        console.log("");
+        let header: string = "";
+        if (poss.length) {
+            for (let i = 0; i < poss.length; i++) {
+                header += table.header.members[poss[i]].index;
+                if (i !== poss.length - 1) header += ", ";
+            }
+        } else {
+            for (let i = 0; i < table.header.members.length; i++) {
+                header += table.header.members[i].index;
+                if (i !== table.header.members.length - 1) header += ", ";
+            }
+        }
+        console.log(`-------------------------------------------`);
+        console.log(header);
+        console.log(`-------------------------------------------`);
+        if (inst.names.length) {
+            for (let rec of records) {
+                let res: string = "";
+                for (let i = 0; i < poss.length; i++) {
+                    res += rec.value[poss[i]].toString();
+                    if (i !== poss.length - 1) res += ", ";
+                }
+                console.log(res);
+            }
+        } else {
+            for (let rec of records) {
+                let res: string = "";
+                for (let i = 0; i < rec.value.length; i++) {
+                    res += rec.value[i].toString();
+                    if (i !== rec.value.length - 1) res += ", ";
+                }
+                console.log(res);
+            }
+        }
+        console.log(`-------------------------------------------`);
+        console.log("");
+        return `select success`;
     }
 
     dropIndex(inst: DropIndex): string {
@@ -322,7 +480,7 @@ export class Catalog {
             throw `Runtime Error : when dropping table ${inst.tableName}, cannot find such table`;
         }
         this.tables.splice(pos, 1);
-        return `drop table ${inst.tableName}`;
+        return `drop table ${inst.tableName} success`;
     }
 
     load(inst: Load): string {
@@ -335,6 +493,23 @@ export class Catalog {
         return `bye bye`;
     }
 
-
+    show(inst: Show): string {
+        if (inst.flag === "tables") {
+            console.log(`There are ${this.tables.length} table${this.tables.length > 1 ? "s" : ""}:`);
+            for (let table of this.tables) {
+                console.log(table.header.name);
+            }
+        } else {
+            for (let table of this.tables) {
+                if (table.indices.length) {
+                    console.log(`indices of ${table.header.name}:`);
+                    for (let index of table.indices) {
+                        console.log(`${index.name} on ${index.index}`);
+                    }
+                }
+            }
+        }
+        return `Show success`;
+    }
 
 }

@@ -10,7 +10,8 @@ export enum InstType {
     DROP_INDEX,
     INSERT,
     EXIT,
-    LOAD
+    LOAD,
+    SHOW
 }
 
 export class Instruction {
@@ -62,6 +63,14 @@ export class Select extends Instruction {
         this.names = names;
         this.tableName = tableName;
         this.restriction = restriction;
+    }
+}
+
+export class Show extends Instruction {
+    flag: string;
+    constructor(flag: string) {
+        super(InstType.SHOW);
+        this.flag = flag;
     }
 }
 

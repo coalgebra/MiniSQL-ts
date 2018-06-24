@@ -12,6 +12,7 @@ var InstType;
     InstType[InstType["INSERT"] = 6] = "INSERT";
     InstType[InstType["EXIT"] = 7] = "EXIT";
     InstType[InstType["LOAD"] = 8] = "LOAD";
+    InstType[InstType["SHOW"] = 9] = "SHOW";
 })(InstType = exports.InstType || (exports.InstType = {}));
 class Instruction {
     constructor(type) {
@@ -49,6 +50,13 @@ class Select extends Instruction {
     }
 }
 exports.Select = Select;
+class Show extends Instruction {
+    constructor(flag) {
+        super(InstType.SHOW);
+        this.flag = flag;
+    }
+}
+exports.Show = Show;
 class Delete extends Instruction {
     constructor(tableName, restriction) {
         super(InstType.DELETE);

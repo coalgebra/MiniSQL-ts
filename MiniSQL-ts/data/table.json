@@ -2,23 +2,6 @@
   "tables": [
     {
       "header": {
-        "name": "fucker",
-        "members": [
-          {
-            "index": "a",
-            "type": {
-              "btype": 0
-            },
-            "unique": false
-          }
-        ],
-        "primary": null
-      },
-      "indices": [],
-      "freeHead": -1
-    },
-    {
-      "header": {
         "name": "a",
         "members": [
           {
@@ -43,31 +26,31 @@
           "name": "a_primary",
           "index": "a",
           "order": [
-            2,
             0,
-            1
+            1,
+            3
           ]
         },
         {
           "name": "shit2",
           "index": "a",
           "order": [
-            2,
             0,
-            1
+            1,
+            3
           ]
         },
         {
-          "name": "shit",
+          "name": "shit3",
           "index": "a",
           "order": [
-            2,
             0,
-            1
+            1,
+            3
           ]
         }
       ],
-      "freeHead": -1
+      "freeHead": 2
     },
     {
       "header": {
@@ -93,12 +76,29 @@
               "btype": 2,
               "count": 10
             },
-            "unique": false
+            "unique": true
           }
         ],
-        "primary": null
+        "primary": "c"
       },
-      "indices": [],
+      "indices": [
+        {
+          "name": "test_primary",
+          "index": "c",
+          "order": [
+            0,
+            1
+          ]
+        },
+        {
+          "name": "a",
+          "index": "a",
+          "order": [
+            0,
+            1
+          ]
+        }
+      ],
       "freeHead": -1
     }
   ]

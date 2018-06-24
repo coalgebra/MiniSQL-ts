@@ -4,7 +4,7 @@ import * as Parser from "./lib/parser";
 import parse = Parser.parse;
 import tokenize = Tokenizer.tokenizer;
 import {Catalog} from "./lib/catalog";
-import { Instruction, InstType, CreateTable, CreateIndex, DropIndex, DropTable, Delete, select, Insert } from "./lib/instruction";
+import { Instruction, InstType, CreateTable, CreateIndex, DropIndex, DropTable, Delete, select, Insert, Select, Show } from "./lib/instruction";
 import { Exit, Load} from "./lib/instruction";
 
 const rl = readline.createInterface({
@@ -40,7 +40,7 @@ class Controller {
                 case InstType.DROP_TABLE:
                     return this.catalog.dropTable(inst as DropTable);
                 case InstType.SELECT:
-                    return "we don't support select now";
+                    return this.catalog.select(inst as Select);
                 case InstType.DELETE:
                     return this.catalog.delete(inst as Delete);
                 case InstType.INSERT:
@@ -49,6 +49,8 @@ class Controller {
                     this.catalog.exit(inst as Exit);
                     console.log(`bye bye`);
                     process.exit(0);
+                case InstType.SHOW:
+                    return this.catalog.show(inst as Show);
                 case InstType.LOAD:
                     return this.catalog.load(inst as Load);
                 default:

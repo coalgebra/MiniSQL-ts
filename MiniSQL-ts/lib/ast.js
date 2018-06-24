@@ -90,10 +90,17 @@ class IdAST extends AST {
         this.name = name;
     }
     evaluate(map) {
-        if (map.hasOwnProperty(this.name)) {
-            return map[this.name];
+        let pos = -1;
+        for (let i = 0; i < map[0].members.length; i++) {
+            if (map[0].members[i].index === this.name) {
+                pos = i;
+                break;
+            }
         }
-        return null;
+        if (pos === -1) {
+            throw `Can't find property of table ${map[0].name}`;
+        }
+        return map[1].value[pos];
     }
 }
 exports.IdAST = IdAST;

@@ -36,7 +36,7 @@ class Controller {
                 case instruction_1.InstType.DROP_TABLE:
                     return this.catalog.dropTable(inst);
                 case instruction_1.InstType.SELECT:
-                    return "we don't support select now";
+                    return this.catalog.select(inst);
                 case instruction_1.InstType.DELETE:
                     return this.catalog.delete(inst);
                 case instruction_1.InstType.INSERT:
@@ -45,6 +45,8 @@ class Controller {
                     this.catalog.exit(inst);
                     console.log(`bye bye`);
                     process.exit(0);
+                case instruction_1.InstType.SHOW:
+                    return this.catalog.show(inst);
                 case instruction_1.InstType.LOAD:
                     return this.catalog.load(inst);
                 default:
