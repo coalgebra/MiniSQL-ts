@@ -5,6 +5,7 @@ const instruction_1 = require("./instruction");
 const types_1 = require("./types");
 const tables_1 = require("./tables");
 const tokenizer_1 = require("./tokenizer");
+const fs_1 = require("fs");
 var TokenType;
 (function (TokenType) {
     TokenType[TokenType["KEYWORD"] = 0] = "KEYWORD";
@@ -147,8 +148,8 @@ function parseRestriction(tokens) {
                 switch (lookAhead) {
                     case "=": return new ast_1.BinopAST(ast_1.BINOP.EQ, lhs, rhs);
                     case "<>": return new ast_1.BinopAST(ast_1.BINOP.NE, lhs, rhs);
-                    case ">": return new ast_1.BinopAST(ast_1.BINOP.LS, lhs, rhs);
-                    case "<": return new ast_1.BinopAST(ast_1.BINOP.GT, lhs, rhs);
+                    case ">": return new ast_1.BinopAST(ast_1.BINOP.GT, lhs, rhs);
+                    case "<": return new ast_1.BinopAST(ast_1.BINOP.LS, lhs, rhs);
                     default:
                         throw "Parse Error : when parsing <cmp-expr>, unknown error";
                 }
@@ -690,6 +691,20 @@ function parseShow(tokens) {
             throw `unexpected token ${tokens[1]} when parsing <show> instruction`;
     }
 }
+function parseExecute(tokens) {
+    if (tokens[tokens.length - 1] !== ";") {
+        throw `wrong syntax of <execute-file>`;
+    }
+    try {
+        tokens.shift();
+        tokens.pop();
+        fs_1.accessSync(tokens.join(""));
+    }
+    catch (shit) {
+        throw shit;
+    }
+    return new instruction_1.Execute(tokens.join(""));
+}
 function parser(inst) {
     const tokens = tokenizer_1.tokenizer(inst);
     switch (tokens[0]) {
@@ -724,6 +739,8 @@ function parser(inst) {
             return parseLoad(tokens);
         case "show":
             return parseShow(tokens);
+        case "exec":
+            return parseExecute(tokens);
         default:
             throw `unrecognized syntax with leading "${tokens[0]}"`;
     }

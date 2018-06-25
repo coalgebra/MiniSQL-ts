@@ -1,8 +1,9 @@
 ﻿import {AST, BINOP, NumLitAST, StrLitAST, IdAST, NotAST, IsNullAST, BinopAST } from "./ast";
-import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction , Exit, Load, Show} from "./instruction";
+import {Select, Delete, DropIndex, DropTable, CreateIndex, CreateTable, Insert, Instruction , Exit, Load, Show, Execute} from "./instruction";
 import {IType, IntType, FloatType, CharsType } from "./types";
 import {TableMember} from "./tables";
-import {tokenizer} from "./tokenizer";
+import { tokenizer } from "./tokenizer";
+import { accessSync } from "fs";
 
 enum TokenType {
     KEYWORD,
@@ -149,8 +150,8 @@ function parseRestriction(tokens: string[]): AST {
                 switch (lookAhead) {
                     case "=": return new BinopAST(BINOP.EQ, lhs, rhs);
                     case "<>": return new BinopAST(BINOP.NE, lhs, rhs);
-                    case ">": return new BinopAST(BINOP.LS, lhs, rhs);
-                    case "<": return new BinopAST(BINOP.GT, lhs, rhs);
+                    case ">": return new BinopAST(BINOP.GT, lhs, rhs);
+                    case "<": return new BinopAST(BINOP.LS, lhs, rhs);
                     default:
                         throw "Parse Error : when parsing <cmp-expr>, unknown error";
                 }
@@ -735,6 +736,20 @@ function parseShow(tokens: string[]): Show {
     }
 }
 
+function parseExecute(tokens: string[]): Execute {
+    if (tokens[tokens.length - 1] !== ";") {
+        throw `wrong syntax of <execute-file>`;
+    }
+    try {
+        tokens.shift();
+        tokens.pop();
+        accessSync(tokens.join(""));
+    } catch (shit) {
+        throw shit;
+    }
+    return new Execute(tokens.join(""));
+}
+
 export function parser(inst : string) : Instruction {
     const tokens = tokenizer(inst);
     switch (tokens[0]) {
@@ -767,6 +782,8 @@ export function parser(inst : string) : Instruction {
             return parseLoad(tokens);
         case "show":
             return parseShow(tokens);
+        case "exec":
+            return parseExecute(tokens);
         default:
             throw `unrecognized syntax with leading "${tokens[0]}"`; 
     }

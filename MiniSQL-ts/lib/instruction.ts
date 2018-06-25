@@ -11,7 +11,8 @@ export enum InstType {
     INSERT,
     EXIT,
     LOAD,
-    SHOW
+    SHOW,
+    EXECUTE_FILE
 }
 
 export class Instruction {
@@ -116,6 +117,15 @@ export class Insert extends Instruction {
     }
 }
 
+export class Execute extends Instruction {
+    filename: string;
+
+    constructor(filename: string) {
+        super(InstType.EXECUTE_FILE);
+        this.filename = filename;
+    }
+}
+
 export class Exit extends Instruction {
     constructor() {
         super(InstType.EXIT);
@@ -130,8 +140,4 @@ export class Load extends Instruction {
         super(InstType.LOAD);
         this.filename = filename;
     }
-}
-
-export function select() {
-
 }

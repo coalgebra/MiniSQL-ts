@@ -73,10 +73,10 @@ class BinopAST extends AST {
                 return null;
             case BINOP.LS:
                 if (typeof lhs === "number" && typeof rhs === "number") {
-                    return lhs > rhs;
+                    return lhs < rhs;
                 }
                 if (typeof lhs === "string" && typeof rhs === "string") {
-                    return lhs > rhs;
+                    return lhs < rhs;
                 }
                 return null;
         }

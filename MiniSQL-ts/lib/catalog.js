@@ -5,6 +5,8 @@ const instruction_1 = require("./instruction");
 const fs_1 = require("fs");
 const types_1 = require("./types");
 const records_1 = require("./records");
+const io_1 = require("./io");
+const parser_1 = require("./parser");
 const DATA_PATH = "data/";
 const TABLE_METADATA_PATH = DATA_PATH + "table.json";
 const RECORD_PATH = DATA_PATH + "records/";
@@ -12,7 +14,37 @@ class Catalog {
     constructor() {
         this.readTableFile();
     }
-    createTable(inst) {
+    writeTableFile() {
+        fs_1.writeFileSync(TABLE_METADATA_PATH, JSON.stringify({
+            tables: this.tables.map(x => {
+                return { header: x.header, indices: x.indices, freeHead: x.freeHead };
+            })
+        }, null, 2));
+        this.tables.map(table => {
+            fs_1.writeFileSync(RECORD_PATH + table.header.name + "_records.json", JSON.stringify({ records: table.records }, null, 2));
+        });
+    }
+    readTableFile() {
+        this.tables = [];
+        let te = this;
+        fs_1.access(TABLE_METADATA_PATH, (err) => {
+            if (err) {
+                return;
+            }
+            const temp = fs_1.readFileSync(TABLE_METADATA_PATH);
+            const content = temp.toString();
+            const temp2 = JSON.parse(content);
+            for (let x of temp2.tables) {
+                te.tables.push(x);
+            }
+            for (let x of te.tables) {
+                let cont = fs_1.readFileSync(RECORD_PATH + x.header.name + "_records.json");
+                let content = cont.toString();
+                x.records = JSON.parse(content).records;
+            }
+        });
+    }
+    createTable(inst, console) {
         // search table with same name : 
         for (let table of this.tables) {
             if (table.header.name === inst.tableName) {
@@ -39,10 +71,10 @@ class Catalog {
         this.tables.push(new tables_1.Table(inst.toTableHeader(), [], -1));
         this.tables[this.tables.length - 1].records = [];
         if (inst.primary)
-            this.createIndex(new instruction_1.CreateIndex(inst.tableName + "_primary", inst.tableName, inst.primary));
+            this.createIndex(new instruction_1.CreateIndex(inst.tableName + "_primary", inst.tableName, inst.primary), console);
         return `create table ${inst.tableName} success`;
     }
-    createIndex(inst) {
+    createIndex(inst, console) {
         let target = null;
         // search table
         for (let table of this.tables) {
@@ -102,36 +134,7 @@ class Catalog {
         target.indices.push(new tables_1.Index(inst.indexName, inst.fieldName, order));
         return `create index ${inst.indexName} on table ${inst.tableName} success`;
     }
-    writeTableFile() {
-        fs_1.writeFileSync(TABLE_METADATA_PATH, JSON.stringify({ tables: this.tables.map(x => {
-                return { header: x.header, indices: x.indices, freeHead: x.freeHead };
-            })
-        }, null, 2));
-        this.tables.map(table => {
-            fs_1.writeFileSync(RECORD_PATH + table.header.name + "_records.json", JSON.stringify({ records: table.records }, null, 2));
-        });
-    }
-    readTableFile() {
-        this.tables = [];
-        let te = this;
-        fs_1.access(TABLE_METADATA_PATH, (err) => {
-            if (err) {
-                return;
-            }
-            const temp = fs_1.readFileSync(TABLE_METADATA_PATH);
-            const content = temp.toString();
-            const temp2 = JSON.parse(content);
-            for (let x of temp2.tables) {
-                te.tables.push(x);
-            }
-            for (let x of te.tables) {
-                let cont = fs_1.readFileSync(RECORD_PATH + x.header.name + "_records.json");
-                let content = cont.toString();
-                x.records = JSON.parse(content).records;
-            }
-        });
-    }
-    insert(inst) {
+    insert(inst, console) {
         let target = null;
         for (let table of this.tables) {
             if (table.header.name === inst.tableName) {
@@ -233,7 +236,7 @@ class Catalog {
         }
         return `insert value success`;
     }
-    delete(inst) {
+    delete(inst, console) {
         let table = null;
         let records = [];
         for (let tab of this.tables) {
@@ -246,7 +249,7 @@ class Catalog {
             throw `Runtime Error : when deleting on ${inst.tableName}, cannot find such table`;
         }
         if (table.indices.length) {
-            let order = table.indices[0].order;
+            let order = table.indices[0].order.slice(0);
             for (let i of order) {
                 if (!inst.restriction || inst.restriction.evaluate([table.header, table.records[i]])) {
                     records.push(table.records[i]);
@@ -315,7 +318,7 @@ class Catalog {
         console.log("");
         return `delete value success`;
     }
-    select(inst) {
+    select(inst, console) {
         let records = [];
         let table = null;
         for (let tab of this.tables) {
@@ -409,7 +412,7 @@ class Catalog {
         console.log("");
         return `select success`;
     }
-    dropIndex(inst) {
+    dropIndex(inst, console) {
         let table = null;
         for (let tab of this.tables) {
             if (tab.header.name === inst.tableName) {
@@ -433,7 +436,7 @@ class Catalog {
         table.indices.splice(pos, 1);
         return `drop index ${inst.indexName} on table ${inst.tableName} success`;
     }
-    dropTable(inst) {
+    dropTable(inst, console) {
         let pos = -1;
         for (let i = 0; i < this.tables.length; i++) {
             if (this.tables[i].header.name === inst.tableName) {
@@ -447,15 +450,15 @@ class Catalog {
         this.tables.splice(pos, 1);
         return `drop table ${inst.tableName} success`;
     }
-    load(inst) {
+    load(inst, console) {
         // TODO
         return `load ${inst.filename} success`;
     }
-    exit(inst) {
+    exit(inst, console) {
         this.writeTableFile();
         return `bye bye`;
     }
-    show(inst) {
+    show(inst, console) {
         if (inst.flag === "tables") {
             console.log(`There are ${this.tables.length} table${this.tables.length > 1 ? "s" : ""}:`);
             for (let table of this.tables) {
@@ -473,6 +476,54 @@ class Catalog {
             }
         }
         return `Show success`;
+    }
+    execute(inst) {
+        // the filename in `inst` is checked
+        let counter = 0;
+        let res = fs_1.readFileSync(inst.filename)
+            .toString()
+            .split(";");
+        res.pop();
+        res.map(x => x + ";").filter(x => x !== ";")
+            .map(x => parser_1.parser(x))
+            .map(x => {
+            counter++;
+            return x;
+        })
+            .map(x => this.deal(x, new io_1.FakeConsole()));
+        return `execute file ${inst.filename} contains ${counter} instructions success`;
+    }
+    deal(inst, console) {
+        if (!inst)
+            throw "illegal statement";
+        switch (inst.itype) {
+            case instruction_1.InstType.CREATE_TABLE:
+                return this.createTable(inst, console);
+            case instruction_1.InstType.CREATE_INDEX:
+                return this.createIndex(inst, console);
+            case instruction_1.InstType.DROP_INDEX:
+                return this.dropIndex(inst, console);
+            case instruction_1.InstType.DROP_TABLE:
+                return this.dropTable(inst, console);
+            case instruction_1.InstType.SELECT:
+                return this.select(inst, console);
+            case instruction_1.InstType.DELETE:
+                return this.delete(inst, console);
+            case instruction_1.InstType.INSERT:
+                return this.insert(inst, console);
+            case instruction_1.InstType.EXIT:
+                this.exit(inst, console);
+                console.log(`bye bye`);
+                process.exit(0);
+            case instruction_1.InstType.SHOW:
+                return this.show(inst, console);
+            case instruction_1.InstType.LOAD:
+                return this.load(inst, console);
+            case instruction_1.InstType.EXECUTE_FILE:
+                return this.execute(inst);
+            default:
+                throw "unrecognized/unimplemented instruction type";
+        }
     }
 }
 exports.Catalog = Catalog;

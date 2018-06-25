@@ -13,6 +13,7 @@ var InstType;
     InstType[InstType["EXIT"] = 7] = "EXIT";
     InstType[InstType["LOAD"] = 8] = "LOAD";
     InstType[InstType["SHOW"] = 9] = "SHOW";
+    InstType[InstType["EXECUTE_FILE"] = 10] = "EXECUTE_FILE";
 })(InstType = exports.InstType || (exports.InstType = {}));
 class Instruction {
     constructor(type) {
@@ -88,6 +89,13 @@ class Insert extends Instruction {
     }
 }
 exports.Insert = Insert;
+class Execute extends Instruction {
+    constructor(filename) {
+        super(InstType.EXECUTE_FILE);
+        this.filename = filename;
+    }
+}
+exports.Execute = Execute;
 class Exit extends Instruction {
     constructor() {
         super(InstType.EXIT);
@@ -101,7 +109,4 @@ class Load extends Instruction {
     }
 }
 exports.Load = Load;
-function select() {
-}
-exports.select = select;
 //# sourceMappingURL=instruction.js.map

@@ -4,7 +4,6 @@ const readline = require("readline");
 const Parser = require("./lib/parser");
 var parse = Parser.parse;
 const catalog_1 = require("./lib/catalog");
-const instruction_1 = require("./lib/instruction");
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -25,33 +24,12 @@ class Controller {
     deal(inst) {
         if (!inst)
             return "illegal statement";
+        let t = process.hrtime();
         try {
-            switch (inst.itype) {
-                case instruction_1.InstType.CREATE_TABLE:
-                    return this.catalog.createTable(inst);
-                case instruction_1.InstType.CREATE_INDEX:
-                    return this.catalog.createIndex(inst);
-                case instruction_1.InstType.DROP_INDEX:
-                    return this.catalog.dropIndex(inst);
-                case instruction_1.InstType.DROP_TABLE:
-                    return this.catalog.dropTable(inst);
-                case instruction_1.InstType.SELECT:
-                    return this.catalog.select(inst);
-                case instruction_1.InstType.DELETE:
-                    return this.catalog.delete(inst);
-                case instruction_1.InstType.INSERT:
-                    return this.catalog.insert(inst);
-                case instruction_1.InstType.EXIT:
-                    this.catalog.exit(inst);
-                    console.log(`bye bye`);
-                    process.exit(0);
-                case instruction_1.InstType.SHOW:
-                    return this.catalog.show(inst);
-                case instruction_1.InstType.LOAD:
-                    return this.catalog.load(inst);
-                default:
-                    return "what the fuck";
-            }
+            let res = this.catalog.deal(inst, console);
+            let t2 = process.hrtime();
+            let time = (t2[0] - t[0]) + (t2[1] - t[1]) / 1e9;
+            return `${res} in ${time} seconds`;
         }
         catch (xxx) {
             return xxx;

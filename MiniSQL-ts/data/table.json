@@ -2,58 +2,6 @@
   "tables": [
     {
       "header": {
-        "name": "a",
-        "members": [
-          {
-            "index": "a",
-            "type": {
-              "btype": 0
-            },
-            "unique": true
-          },
-          {
-            "index": "b",
-            "type": {
-              "btype": 0
-            },
-            "unique": false
-          }
-        ],
-        "primary": "a"
-      },
-      "indices": [
-        {
-          "name": "a_primary",
-          "index": "a",
-          "order": [
-            0,
-            1,
-            3
-          ]
-        },
-        {
-          "name": "shit2",
-          "index": "a",
-          "order": [
-            0,
-            1,
-            3
-          ]
-        },
-        {
-          "name": "shit3",
-          "index": "a",
-          "order": [
-            0,
-            1,
-            3
-          ]
-        }
-      ],
-      "freeHead": 2
-    },
-    {
-      "header": {
         "name": "test",
         "members": [
           {
@@ -96,6 +44,113 @@
           "order": [
             0,
             1
+          ]
+        }
+      ],
+      "freeHead": -1
+    },
+    {
+      "header": {
+        "name": "tab",
+        "members": [
+          {
+            "index": "a",
+            "type": {
+              "btype": 0
+            },
+            "unique": true
+          },
+          {
+            "index": "b",
+            "type": {
+              "btype": 0
+            },
+            "unique": true
+          },
+          {
+            "index": "c",
+            "type": {
+              "btype": 2,
+              "count": 244
+            },
+            "unique": true
+          }
+        ],
+        "primary": "c"
+      },
+      "indices": [
+        {
+          "name": "tab_primary",
+          "index": "c",
+          "order": [
+            0
+          ]
+        },
+        {
+          "name": "shit",
+          "index": "a",
+          "order": [
+            0
+          ]
+        }
+      ],
+      "freeHead": -1
+    },
+    {
+      "header": {
+        "name": "shit",
+        "members": [
+          {
+            "index": "fucker",
+            "type": {
+              "btype": 0
+            },
+            "unique": true
+          }
+        ],
+        "primary": "fucker"
+      },
+      "indices": [
+        {
+          "name": "shit_primary",
+          "index": "fucker",
+          "order": []
+        }
+      ],
+      "freeHead": -1
+    },
+    {
+      "header": {
+        "name": "a",
+        "members": [
+          {
+            "index": "a",
+            "type": {
+              "btype": 0
+            },
+            "unique": true
+          },
+          {
+            "index": "b",
+            "type": {
+              "btype": 0
+            },
+            "unique": false
+          }
+        ],
+        "primary": "a"
+      },
+      "indices": [
+        {
+          "name": "a_primary",
+          "index": "a",
+          "order": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
           ]
         }
       ],

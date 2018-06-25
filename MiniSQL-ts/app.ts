@@ -4,7 +4,7 @@ import * as Parser from "./lib/parser";
 import parse = Parser.parse;
 import tokenize = Tokenizer.tokenizer;
 import {Catalog} from "./lib/catalog";
-import { Instruction, InstType, CreateTable, CreateIndex, DropIndex, DropTable, Delete, select, Insert, Select, Show } from "./lib/instruction";
+import { Instruction, InstType, CreateTable, CreateIndex, DropIndex, DropTable, Delete, Insert, Select, Show, Execute } from "./lib/instruction";
 import { Exit, Load} from "./lib/instruction";
 
 const rl = readline.createInterface({
@@ -29,33 +29,12 @@ class Controller {
     }
     deal(inst: Instruction): string {
         if (!inst) return "illegal statement";
+        let t = process.hrtime();
         try {
-            switch (inst.itype) {
-                case InstType.CREATE_TABLE:
-                    return this.catalog.createTable(inst as CreateTable);
-                case InstType.CREATE_INDEX:
-                    return this.catalog.createIndex(inst as CreateIndex);
-                case InstType.DROP_INDEX:
-                    return this.catalog.dropIndex(inst as DropIndex);
-                case InstType.DROP_TABLE:
-                    return this.catalog.dropTable(inst as DropTable);
-                case InstType.SELECT:
-                    return this.catalog.select(inst as Select);
-                case InstType.DELETE:
-                    return this.catalog.delete(inst as Delete);
-                case InstType.INSERT:
-                    return this.catalog.insert(inst as Insert);
-                case InstType.EXIT:
-                    this.catalog.exit(inst as Exit);
-                    console.log(`bye bye`);
-                    process.exit(0);
-                case InstType.SHOW:
-                    return this.catalog.show(inst as Show);
-                case InstType.LOAD:
-                    return this.catalog.load(inst as Load);
-                default:
-                    return "what the fuck";
-            }
+            let res = this.catalog.deal(inst, console);
+            let t2 = process.hrtime();
+            let time = (t2[0] - t[0]) + (t2[1] - t[1]) / 1e9;
+            return `${res} in ${time} seconds`;
         } catch (xxx) {
             return xxx;
         }
