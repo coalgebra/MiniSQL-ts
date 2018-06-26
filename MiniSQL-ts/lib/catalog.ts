@@ -531,7 +531,8 @@ export class Catalog {
                 return x;
             })
             .map(x => this.deal(x, new FakeConsole()));
-        return `execute file ${inst.filename} contains ${counter} instructions success`;
+        this.writeTableFile();
+        return `execute file ${inst.filename} containing ${counter} instructions success`;
     }
 
     deal(inst: Instruction, console: ILogger): string {

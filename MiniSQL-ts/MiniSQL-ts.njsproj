@@ -54,9 +54,6 @@
     <TypeScriptCompile Include="lib\io.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="lib\map.ts">
-      <SubType>Code</SubType>
-    </TypeScriptCompile>
     <TypeScriptCompile Include="lib\parser.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>

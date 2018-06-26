@@ -98,29 +98,6 @@
     },
     {
       "header": {
-        "name": "shit",
-        "members": [
-          {
-            "index": "fucker",
-            "type": {
-              "btype": 0
-            },
-            "unique": true
-          }
-        ],
-        "primary": "fucker"
-      },
-      "indices": [
-        {
-          "name": "shit_primary",
-          "index": "fucker",
-          "order": []
-        }
-      ],
-      "freeHead": -1
-    },
-    {
-      "header": {
         "name": "a",
         "members": [
           {
@@ -145,12 +122,54 @@
           "name": "a_primary",
           "index": "a",
           "order": [
-            0,
-            1,
-            2,
-            3,
+            5,
             4,
-            5
+            3,
+            2,
+            1,
+            0,
+            6
+          ]
+        }
+      ],
+      "freeHead": -1
+    },
+    {
+      "header": {
+        "name": "student",
+        "members": [
+          {
+            "index": "sid",
+            "type": {
+              "btype": 2,
+              "count": 30
+            },
+            "unique": true
+          },
+          {
+            "index": "age",
+            "type": {
+              "btype": 0
+            },
+            "unique": false
+          },
+          {
+            "index": "gpa",
+            "type": {
+              "btype": 1
+            },
+            "unique": false
+          }
+        ],
+        "primary": "sid"
+      },
+      "indices": [
+        {
+          "name": "student_primary",
+          "index": "sid",
+          "order": [
+            1,
+            0
           ]
         }
       ],

@@ -491,7 +491,8 @@ class Catalog {
             return x;
         })
             .map(x => this.deal(x, new io_1.FakeConsole()));
-        return `execute file ${inst.filename} contains ${counter} instructions success`;
+        this.writeTableFile();
+        return `execute file ${inst.filename} containing ${counter} instructions success`;
     }
     deal(inst, console) {
         if (!inst)
