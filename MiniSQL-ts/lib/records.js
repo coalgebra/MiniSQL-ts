@@ -6,4 +6,7 @@ class Record {
     }
 }
 exports.Record = Record;
+class RecordManager {
+}
+exports.RecordManager = RecordManager;
 //# sourceMappingURL=records.js.map

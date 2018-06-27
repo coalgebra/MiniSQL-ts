@@ -10,6 +10,7 @@ export interface IType {
     toString(): string;
 }
 
+
 export function parseType(type:string) {
     switch (type[0]) {
         case "i":

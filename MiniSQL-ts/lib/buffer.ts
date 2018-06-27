@@ -1,3 +1,3 @@
-﻿export class Buffer {
+﻿export class BufferManager {
     
 }

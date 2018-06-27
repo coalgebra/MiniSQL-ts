@@ -7,3 +7,7 @@ export class Record {
         this.value = value;
     }
 }
+
+export class RecordManager {
+
+}

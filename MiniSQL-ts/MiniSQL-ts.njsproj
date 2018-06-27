@@ -42,7 +42,7 @@
     <TypeScriptCompile Include="lib\buffer.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
-    <TypeScriptCompile Include="lib\catalog.ts">
+    <TypeScriptCompile Include="lib\CatalogManager.ts">
       <SubType>Code</SubType>
     </TypeScriptCompile>
     <TypeScriptCompile Include="lib\indices.ts">

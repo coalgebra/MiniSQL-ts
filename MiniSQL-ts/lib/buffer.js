@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-class Buffer {
+class BufferManager {
 }
-exports.Buffer = Buffer;
+exports.BufferManager = BufferManager;
 //# sourceMappingURL=buffer.js.map

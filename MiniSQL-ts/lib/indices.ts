@@ -1,5 +1,8 @@
 ﻿"use strict";
 
+import { BufferManager } from "./buffer";
+import {Index, Table } from "./tables";
+
 const B_NODE_ORDER = 2;
 
 const B_NODE_MIN_SIZE = B_NODE_ORDER - 1;
@@ -12,7 +15,7 @@ const RIGHT_DIR = true;
 
 type Direction = boolean;
 
-interface BNode<T, BKeyType> {
+export interface BNode<T, BKeyType> {
     keys: Array<BKeyType>;
     keyNum: number;
     isLeaf: boolean;
@@ -36,7 +39,7 @@ interface BNode<T, BKeyType> {
     getCIndex(key: BKeyType, index: number): number;
 }
 
-class BLeafNode<T, TBKeyType> implements BNode<T, TBKeyType>{
+export class BLeafNode<T, TBKeyType> implements BNode<T, TBKeyType>{
     keys: Array<TBKeyType>;
     keyNum: number;
     isLeaf: boolean;
@@ -399,34 +402,41 @@ export class BTree<T, TBKeyType> {
     }
 
     removeNode(current: BNode<T, TBKeyType>, key: TBKeyType) {
-        let index = current.getIndex(key);
-        let cindex = current.getCIndex(key, index);
-        if (current.isLeaf) {
-            if (key === this.maxKey && index > 0) {
-                this.maxKey = current.getKey(index - 1);
-            }
-            current.removeKey(index, cindex);
-            if (cindex === 0 && !this.root.isLeaf && current !== this.headNode) {
-                this.changeKey(this.root, key, current.getKey(0));
-            }
-        } else {
-            let child = (<BInterNode<T, TBKeyType>>current).getChild(cindex);
-            if (child.getNum() == B_NODE_MIN_SIZE) {
-                let left: BNode<T, TBKeyType> = cindex > 0 ? (<BInterNode<T, TBKeyType>>current).getChild(cindex - 1) : null;
-                let right: BNode<T, TBKeyType> = cindex < current.getNum() ? (<BInterNode<T, TBKeyType>>current).getChild(cindex + 1) : null;
-                if (left !== null && left.getNum() > B_NODE_MIN_SIZE) {
-                    child.moveFrom(left, current, index - 1, LEFT_DIR);
-                } else if (right !== null && right.getNum() > B_NODE_MIN_SIZE) {
-                    child.moveFrom(right, current, cindex, RIGHT_DIR);
-                } else if (left !== null) {
-                    left.merge(current, child, cindex - 1);
-                    child = left;
-                } else if (right !== null) {
-                    right.merge(current, child, cindex);
-                    child = right;
+        if (!current) return;
+        while (true) {
+            let index = current.getIndex(key);
+            let cindex = current.getCIndex(key, index);
+            if (current.isLeaf) {
+                if (key === this.maxKey && index > 0) {
+                    this.maxKey = current.getKey(index - 1);
                 }
+                current.removeKey(index, cindex);
+                if (cindex === 0 && !this.root.isLeaf && current !== this.headNode) {
+                    this.changeKey(this.root, key, current.getKey(0));
+                }
+                return;
+            } else {
+                let child = (<BInterNode<T, TBKeyType>>current).getChild(cindex);
+                if (child.getNum() == B_NODE_MIN_SIZE) {
+                    let left: BNode<T, TBKeyType> =
+                        cindex > 0 ? (<BInterNode<T, TBKeyType>>current).getChild(cindex - 1) : null;
+                    let right: BNode<T, TBKeyType> = cindex < current.getNum()
+                        ? (<BInterNode<T, TBKeyType>>current).getChild(cindex + 1)
+                        : null;
+                    if (left !== null && left.getNum() > B_NODE_MIN_SIZE) {
+                        child.moveFrom(left, current, index - 1, LEFT_DIR);
+                    } else if (right !== null && right.getNum() > B_NODE_MIN_SIZE) {
+                        child.moveFrom(right, current, cindex, RIGHT_DIR);
+                    } else if (left !== null) {
+                        left.merge(current, child, cindex - 1);
+                        child = left;
+                    } else if (right !== null) {
+                        right.merge(current, child, cindex);
+                        child = right;
+                    }
+                }
+                current = child;
             }
-            this.removeNode(child, key);
         }
     }
 
@@ -548,4 +558,18 @@ export class BTree<T, TBKeyType> {
         return [];
     }
 
+}
+
+export class IndexManager {
+    bufferManager: BufferManager;
+    constructor(bufferManager: BufferManager) {
+        this.bufferManager = bufferManager;
+    }
+    createIndex(index: Index, table: Table) {}
+
+    dropIndex(indexName: string, table: Table) {}
+
+    getIndex(indexName: string, table: Table) {}
+
+    closeIndex(indexName: string, table: Table) {}
 }
